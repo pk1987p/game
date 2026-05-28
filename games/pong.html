@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong - GameJio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-green-orange {
+            background: linear-gradient(135deg, #10b981 0%, #f97316 100%);
+        }
+        canvas {
+            border: 3px solid #10b981;
+            display: block;
+            margin: 0 auto;
+            background: #000;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="/index.html" class="text-xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮 GameJio</a>
+            <div class="flex items-center gap-4">
+                <span id="userName" class="text-sm font-medium text-gray-700 hidden"></span>
+                <button id="logoutBtn" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm hidden">
+                    Logout
+                </button>
+                <a href="/login.html" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm" id="loginLink">
+                    Login
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <h1 class="text-4xl font-bold text-center gradient-green-orange bg-clip-text text-transparent mb-4">🏓 Pong</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">Your Score</p>
+                    <p id="playerScore" class="text-3xl font-bold text-green-600">0</p>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">AI Score</p>
+                    <p id="aiScore" class="text-3xl font-bold text-orange-600">0</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">High Score</p>
+                    <p id="highScore" class="text-3xl font-bold text-blue-600">0</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg overflow-hidden mb-8">
+                <canvas id="gameCanvas" width="600" height="400" class="w-full"></canvas>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                <button id="startBtn" class="py-3 gradient-green-orange text-white font-bold rounded-lg hover:shadow-lg text-lg">
+                    Start Game
+                </button>
+                <button id="resetBtn" class="py-3 bg-red-500 text-white font-bold rounded-lg hover:shadow-lg text-lg">
+                    Reset
+                </button>
+            </div>
+
+            <div class="bg-blue-50 p-6 rounded-lg">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">How to Play</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li>🖱️ <strong>Mouse</strong> or <strong>Arrow keys</strong> to move your paddle</li>
+                    <li>📱 On mobile, <strong>swipe up/down</strong></li>
+                    <li>🎾 Keep the ball in play and outscore the AI</li>
+                    <li>🤖 The AI gets faster as the game progresses</li>
+                    <li>🏆 First to 5 wins!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        protectGamePage();
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const playerScoreDisplay = document.getElementById('playerScore');
+        const aiScoreDisplay = document.getElementById('aiScore');
+        const highScoreDisplay = document.getElementById('highScore');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        let gameRunning = false;
+        let playerScore = 0;
+        let aiScore = 0;
+        let highScore = getHighScore('Pong');
+        highScoreDisplay.textContent = highScore;
+
+        const paddle = {
+            width: 12,
+            height: 80,
+            speed: 5
+        };
+
+        const player = {
+            x: 20,
+            y: canvas.height / 2 - paddle.height / 2,
+            score: 0
+        };
+
+        const ai = {
+            x: canvas.width - 30,
+            y: canvas.height / 2 - paddle.height / 2,
+            score: 0
+        };
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 8,
+            speedX: 5,
+            speedY: 5
+        };
+
+        let keys = {};
+        let mouseY = canvas.height / 2;
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw center line
+            ctx.strokeStyle = '#fff';
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw paddles
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(player.x, player.y, paddle.width, paddle.height);
+            ctx.fillStyle = '#f97316';
+            ctx.fillRect(ai.x, ai.y, paddle.width, paddle.height);
+
+            // Draw ball
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw scores
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(playerScore, canvas.width / 4, 40);
+            ctx.fillText(aiScore, (canvas.width * 3) / 4, 40);
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            // Move player paddle
+            if (keys['ArrowUp'] || keys['w']) {
+                player.y = Math.max(0, player.y - paddle.speed);
+            }
+            if (keys['ArrowDown'] || keys['s']) {
+                player.y = Math.min(canvas.height - paddle.height, player.y + paddle.speed);
+            }
+
+            // Move with mouse
+            player.y = Math.max(0, Math.min(canvas.height - paddle.height, mouseY - paddle.height / 2));
+
+            // Move AI paddle
+            const aiCenter = ai.y + paddle.height / 2;
+            const ballDelta = ball.y - aiCenter;
+            const aiSpeed = 3 + Math.abs(ball.speedX) * 0.3;
+
+            if (ballDelta > 20) {
+                ai.y = Math.min(canvas.height - paddle.height, ai.y + aiSpeed);
+            } else if (ballDelta < -20) {
+                ai.y = Math.max(0, ai.y - aiSpeed);
+            }
+
+            // Update ball
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+
+            // Ball collision with top/bottom
+            if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+                ball.speedY = -ball.speedY;
+                ball.y = Math.max(ball.radius, Math.min(canvas.height - ball.radius, ball.y));
+            }
+
+            // Ball collision with player paddle
+            if (
+                ball.x - ball.radius < player.x + paddle.width &&
+                ball.y > player.y &&
+                ball.y < player.y + paddle.height
+            ) {
+                ball.speedX = -ball.speedX;
+                const deltaY = ball.y - (player.y + paddle.height / 2);
+                ball.speedY = deltaY / 20;
+                ball.x = player.x + paddle.width + ball.radius;
+            }
+
+            // Ball collision with AI paddle
+            if (
+                ball.x + ball.radius > ai.x &&
+                ball.y > ai.y &&
+                ball.y < ai.y + paddle.height
+            ) {
+                ball.speedX = -ball.speedX;
+                const deltaY = ball.y - (ai.y + paddle.height / 2);
+                ball.speedY = deltaY / 20;
+                ball.x = ai.x - ball.radius;
+            }
+
+            // Ball goes out of bounds
+            if (ball.x < 0) {
+                aiScore++;
+                aiScoreDisplay.textContent = aiScore;
+                resetBall();
+            }
+
+            if (ball.x > canvas.width) {
+                playerScore++;
+                playerScoreDisplay.textContent = playerScore;
+                resetBall();
+            }
+
+            // Check for winner
+            if (playerScore >= 5 || aiScore >= 5) {
+                endGame();
+            }
+        }
+
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.speedX = (Math.random() > 0.5 ? 1 : -1) * 5;
+            ball.speedY = (Math.random() - 0.5) * 6;
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                resetBall();
+                startBtn.textContent = 'Game Running...';
+                startBtn.disabled = true;
+                gameLoop();
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+            const finalScore = playerScore;
+
+            if (playerScore > highScore) {
+                highScore = playerScore;
+                highScoreDisplay.textContent = highScore;
+            }
+
+            showGameOverScreen(finalScore, 'Pong', () => {
+                playerScore = 0;
+                aiScore = 0;
+                playerScoreDisplay.textContent = 0;
+                aiScoreDisplay.textContent = 0;
+                startBtn.textContent = 'Start Game';
+                startBtn.disabled = false;
+                draw();
+                startGame();
+            });
+        }
+
+        startBtn.addEventListener('click', startGame);
+        resetBtn.addEventListener('click', () => {
+            gameRunning = false;
+            playerScore = 0;
+            aiScore = 0;
+            playerScoreDisplay.textContent = 0;
+            aiScoreDisplay.textContent = 0;
+            startBtn.textContent = 'Start Game';
+            startBtn.disabled = false;
+            draw();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseY = e.clientY - rect.top;
+        });
+
+        addTouchControls(canvas,
+            null,
+            null,
+            null
+        );
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initGamePage('Pong');
+            draw();
+        });
+    </script>
+</body>
+</html>
+
+
+

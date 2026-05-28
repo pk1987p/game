@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter - GameJio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-green-orange {
+            background: linear-gradient(135deg, #10b981 0%, #f97316 100%);
+        }
+        canvas {
+            border: 3px solid #10b981;
+            display: block;
+            margin: 0 auto;
+            background: radial-gradient(ellipse at 50% 50%, #1e3a8a 0%, #0f172a 100%);
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="/index.html" class="text-xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮 GameJio</a>
+            <div class="flex items-center gap-4">
+                <span id="userName" class="text-sm font-medium text-gray-700 hidden"></span>
+                <button id="logoutBtn" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm hidden">
+                    Logout
+                </button>
+                <a href="/login.html" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm" id="loginLink">
+                    Login
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <h1 class="text-4xl font-bold text-center gradient-green-orange bg-clip-text text-transparent mb-4">🚀 Space Shooter</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-slate-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">Score</p>
+                    <p id="score" class="text-3xl font-bold text-slate-600">0</p>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">High Score</p>
+                    <p id="highScore" class="text-3xl font-bold text-orange-600">0</p>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">Wave</p>
+                    <p id="wave" class="text-3xl font-bold text-red-600">1</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg overflow-hidden mb-8">
+                <canvas id="gameCanvas" width="400" height="600" class="w-full"></canvas>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                <button id="startBtn" class="py-3 gradient-green-orange text-white font-bold rounded-lg hover:shadow-lg text-lg">
+                    Start Game
+                </button>
+                <button id="pauseBtn" class="py-3 bg-blue-500 text-white font-bold rounded-lg hover:shadow-lg text-lg" disabled>
+                    Pause
+                </button>
+            </div>
+
+            <div class="bg-slate-50 p-6 rounded-lg">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">How to Play</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li>🖱️ <strong>Mouse</strong> or <strong>Arrow keys</strong> to move</li>
+                    <li>📱 On mobile, <strong>swipe left/right</strong></li>
+                    <li>🔫 <strong>Space bar</strong> or <strong>click/tap</strong> to shoot</li>
+                    <li>👾 Destroy all enemies to advance waves</li>
+                    <li>⚠️ Avoid enemy fire!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        protectGamePage();
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const highScoreDisplay = document.getElementById('highScore');
+        const waveDisplay = document.getElementById('wave');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+
+        let gameRunning = false;
+        let gamePaused = false;
+        let score = 0;
+        let wave = 1;
+        let highScore = getHighScore('Space Shooter');
+        highScoreDisplay.textContent = highScore;
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 40,
+            width: 30,
+            height: 30,
+            speed: 6
+        };
+
+        let bullets = [];
+        let enemies = [];
+        let enemyBullets = [];
+        let keys = {};
+        let mouseX = canvas.width / 2;
+
+        function createEnemies() {
+            enemies = [];
+            const enemyCount = 3 + wave;
+            for (let i = 0; i < enemyCount; i++) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 30),
+                    y: 30 + i * 60,
+                    width: 25,
+                    height: 25,
+                    speedX: (Math.random() - 0.5) * 2,
+                    health: 1
+                });
+            }
+        }
+
+        function draw() {
+            // Draw space background
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw stars
+            ctx.fillStyle = '#fff';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 47) % canvas.width;
+                const y = (i * 71) % canvas.height;
+                ctx.fillRect(x, y, 1, 1);
+            }
+
+            // Draw player
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y);
+            ctx.lineTo(player.x - player.width / 2, player.y + player.height);
+            ctx.lineTo(player.x + player.width / 2, player.y + player.height);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw bullets
+            ctx.fillStyle = '#fbbf24';
+            bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x - 2, bullet.y, 4, 12);
+            });
+
+            // Draw enemies
+            ctx.fillStyle = '#ef4444';
+            enemies.forEach(enemy => {
+                ctx.fillRect(enemy.x - enemy.width / 2, enemy.y, enemy.width, enemy.height);
+                ctx.strokeStyle = '#fca5a5';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(enemy.x - enemy.width / 2, enemy.y, enemy.width, enemy.height);
+            });
+
+            // Draw enemy bullets
+            ctx.fillStyle = '#f97316';
+            enemyBullets.forEach(bullet => {
+                ctx.fillRect(bullet.x - 2, bullet.y, 4, 12);
+            });
+
+            // Draw score and wave
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Score: ' + score, 10, 20);
+            ctx.fillText('Wave: ' + wave, 10, 40);
+        }
+
+        function update() {
+            if (!gameRunning || gamePaused) return;
+
+            // Move player
+            if (keys['ArrowLeft'] || keys['a']) {
+                player.x = Math.max(player.width / 2, player.x - player.speed);
+            }
+            if (keys['ArrowRight'] || keys['d']) {
+                player.x = Math.min(canvas.width - player.width / 2, player.x + player.speed);
+            }
+
+            player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, mouseX));
+
+            // Update bullets
+            bullets = bullets.filter(b => b.y > 0);
+            bullets.forEach(bullet => {
+                bullet.y -= 8;
+            });
+
+            // Update enemy bullets
+            enemyBullets = enemyBullets.filter(b => b.y < canvas.height);
+            enemyBullets.forEach(bullet => {
+                bullet.y += 6;
+            });
+
+            // Move enemies
+            enemies.forEach(enemy => {
+                enemy.x += enemy.speedX;
+                if (enemy.x < 15 || enemy.x > canvas.width - 15) {
+                    enemy.speedX = -enemy.speedX;
+                }
+
+                // Enemy shoots randomly
+                if (Math.random() < 0.01) {
+                    enemyBullets.push({
+                        x: enemy.x,
+                        y: enemy.y + enemy.height
+                    });
+                }
+            });
+
+            // Check bullet-enemy collisions
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const bullet = bullets[i];
+                    const enemy = enemies[j];
+
+                    if (
+                        bullet.x > enemy.x - enemy.width / 2 &&
+                        bullet.x < enemy.x + enemy.width / 2 &&
+                        bullet.y > enemy.y &&
+                        bullet.y < enemy.y + enemy.height
+                    ) {
+                        bullets.splice(i, 1);
+                        enemies.splice(j, 1);
+                        score += 10;
+                        scoreDisplay.textContent = score;
+                        break;
+                    }
+                }
+            }
+
+            // Check enemy bullet-player collisions
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                const bullet = enemyBullets[i];
+
+                if (
+                    bullet.x > player.x - player.width / 2 &&
+                    bullet.x < player.x + player.width / 2 &&
+                    bullet.y > player.y &&
+                    bullet.y < player.y + player.height
+                ) {
+                    endGame();
+                    return;
+                }
+            }
+
+            // Wave advancement
+            if (enemies.length === 0) {
+                wave++;
+                waveDisplay.textContent = wave;
+                createEnemies();
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function shoot() {
+            if (gameRunning && !gamePaused) {
+                bullets.push({
+                    x: player.x,
+                    y: player.y - 10
+                });
+            }
+        }
+
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                gamePaused = false;
+                score = 0;
+                wave = 1;
+                scoreDisplay.textContent = 0;
+                waveDisplay.textContent = 1;
+                createEnemies();
+                startBtn.textContent = 'Restart';
+                pauseBtn.disabled = false;
+                gameLoop();
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+            gamePaused = false;
+            startBtn.textContent = 'Start Game';
+            pauseBtn.disabled = true;
+            pauseBtn.textContent = 'Pause';
+
+            if (score > highScore) {
+                highScore = score;
+                highScoreDisplay.textContent = highScore;
+            }
+
+            showGameOverScreen(score, 'Space Shooter', () => {
+                score = 0;
+                wave = 1;
+                bullets = [];
+                enemies = [];
+                enemyBullets = [];
+                scoreDisplay.textContent = 0;
+                waveDisplay.textContent = 1;
+                draw();
+                startGame();
+            });
+        }
+
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', () => {
+            gamePaused = !gamePaused;
+            pauseBtn.textContent = gamePaused ? 'Resume' : 'Pause';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+                shoot();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+        });
+
+        canvas.addEventListener('click', shoot);
+        canvas.addEventListener('touchstart', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.touches[0].clientX - rect.left;
+            shoot();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initGamePage('Space Shooter');
+            draw();
+        });
+    </script>
+</body>
+</html>
+
+
+

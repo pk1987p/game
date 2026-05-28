@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Match - GameJio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-green-orange {
+            background: linear-gradient(135deg, #10b981 0%, #f97316 100%);
+        }
+        .memory-card {
+            width: 80px;
+            height: 80px;
+            perspective: 1000px;
+        }
+        .memory-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .memory-card.flipped .memory-card-inner {
+            transform: rotateY(180deg);
+        }
+        .memory-card-front, .memory-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backface-visibility: hidden;
+        }
+        .memory-card-front {
+            background: linear-gradient(135deg, #10b981 0%, #f97316 100%);
+            color: white;
+            font-size: 28px;
+        }
+        .memory-card-back {
+            background: white;
+            border: 2px solid #10b981;
+            font-size: 32px;
+            transform: rotateY(180deg);
+        }
+        .memory-card.matched .memory-card-back {
+            background: #dcfce7;
+        }
+        @media (max-width: 768px) {
+            .memory-card {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="/index.html" class="text-xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮 GameJio</a>
+            <div class="flex items-center gap-4">
+                <span id="userName" class="text-sm font-medium text-gray-700 hidden"></span>
+                <button id="logoutBtn" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm hidden">
+                    Logout
+                </button>
+                <a href="/login.html" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm" id="loginLink">
+                    Login
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <h1 class="text-4xl font-bold text-center gradient-green-orange bg-clip-text text-transparent mb-4">🧠 Memory Match</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-indigo-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">Moves</p>
+                    <p id="moves" class="text-3xl font-bold text-indigo-600">0</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">Best Score</p>
+                    <p id="bestScore" class="text-3xl font-bold text-purple-600">0</p>
+                </div>
+                <div class="bg-pink-50 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-2">Matched</p>
+                    <p id="matched" class="text-3xl font-bold text-pink-600">0/8</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-100 rounded-lg p-6 mb-8 flex flex-wrap justify-center gap-3">
+                <div id="gameBoard" class="grid gap-3" style="grid-template-columns: repeat(4, 1fr);"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                <button id="startBtn" class="py-3 gradient-green-orange text-white font-bold rounded-lg hover:shadow-lg text-lg">
+                    New Game
+                </button>
+                <button id="resetBtn" class="py-3 bg-red-500 text-white font-bold rounded-lg hover:shadow-lg text-lg">
+                    Reset
+                </button>
+            </div>
+
+            <div class="bg-indigo-50 p-6 rounded-lg">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">How to Play</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li>🎯 Click cards to flip them and find matching pairs</li>
+                    <li>👀 Remember where each emoji is located</li>
+                    <li>⚡ Try to match all pairs in the fewest moves</li>
+                    <li>🏆 Lower moves = higher score!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        protectGamePage();
+
+        const gameBoard = document.getElementById('gameBoard');
+        const movesDisplay = document.getElementById('moves');
+        const bestScoreDisplay = document.getElementById('bestScore');
+        const matchedDisplay = document.getElementById('matched');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const emojis = ['🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎬', '🎸'];
+        let cards = [];
+        let flipped = [];
+        let matched = 0;
+        let moves = 0;
+        let gameActive = true;
+        let bestScore = getHighScore('Memory Match') || Infinity;
+
+        bestScoreDisplay.textContent = bestScore === Infinity ? '∞' : bestScore;
+
+        function initGame() {
+            cards = [];
+            gameBoard.innerHTML = '';
+            flipped = [];
+            matched = 0;
+            moves = 0;
+            gameActive = true;
+
+            movesDisplay.textContent = 0;
+            matchedDisplay.textContent = '0/8';
+
+            // Create card pairs
+            const cardPairs = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+
+            cardPairs.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card cursor-pointer';
+                card.innerHTML = `
+                    <div class="memory-card-inner">
+                        <div class="memory-card-front">?</div>
+                        <div class="memory-card-back">${emoji}</div>
+                    </div>
+                `;
+                card.dataset.emoji = emoji;
+                card.dataset.index = index;
+
+                card.addEventListener('click', () => flipCard(card, index));
+                gameBoard.appendChild(card);
+            });
+        }
+
+        function flipCard(card, index) {
+            if (!gameActive || flipped.length >= 2 || flipped.includes(index) || card.classList.contains('matched')) {
+                return;
+            }
+
+            card.classList.add('flipped');
+            flipped.push(index);
+
+            if (flipped.length === 2) {
+                gameActive = false;
+                moves++;
+                movesDisplay.textContent = moves;
+
+                const card1 = gameBoard.children[flipped[0]];
+                const card2 = gameBoard.children[flipped[1]];
+
+                if (card1.dataset.emoji === card2.dataset.emoji) {
+                    // Match found
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    matched++;
+                    matchedDisplay.textContent = `${matched}/8`;
+
+                    flipped = [];
+                    gameActive = true;
+
+                    if (matched === 8) {
+                        endGame();
+                    }
+                } else {
+                    // No match
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        flipped = [];
+                        gameActive = true;
+                    }, 800);
+                }
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+
+            if (moves < bestScore) {
+                bestScore = moves;
+                bestScoreDisplay.textContent = bestScore;
+                saveGameScore('Memory Match', bestScore);
+            }
+
+            showGameOverScreen(moves, 'Memory Match', () => {
+                initGame();
+            });
+        }
+
+        startBtn.addEventListener('click', () => {
+            initGame();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            initGame();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initGamePage('Memory Match');
+            initGame();
+        });
+    </script>
+</body>
+</html>
+
+
+

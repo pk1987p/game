@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameJio - Play HTML5 Games</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        .gradient-green-orange {
+            background: linear-gradient(135deg, #a510b9 0%, #1640f9e3 100%);
+        }
+        .theme-green { color: #b91056; }
+        .theme-orange { color: #f97316; }
+        .btn-primary {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(90deg, #22c55e, #f97316);
+            color: #ffffff;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 10px 15px rgba(16, 185, 129, 0.2);
+            transform: scale(1.05);
+        }
+        .game-card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+        .play-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #f97316 100%);
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            transition: all 0.3s ease;
+        }
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="./index.html" class="flex items-center gap-2">
+                <span class="text-2xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮 GameJio</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <div id="userMenu" class="hidden flex items-center gap-4">
+                    <span id="userName" class="text-sm font-medium text-gray-700"></span>
+                    <button id="logoutBtn" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm">
+                        Logout
+                    </button>
+                </div>
+                <div id="authMenu" class="flex gap-3">
+                    <a href="./login.html" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm">
+                        Login
+                    </a>
+                    <a href="./signup.html" class="px-4 py-2 border-2 border-orange-500 text-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition-colors text-sm">
+                        Sign Up
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-green-orange text-white py-8 md:py-12 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Play Amazing HTML5 Games</h1>
+            <p class="text-lg md:text-xl opacity-90">Choose from our collection of classic games. No downloads required!</p>
+        </div>
+    </section>
+
+    <!-- Featured Games -->
+    <section class="max-w-6xl mx-auto px-4 py-8 md:py-12">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">
+            <span class="gradient-green-orange bg-clip-text text-transparent">Featured Games</span>
+        </h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Game Card 1: Snake -->
+            <a href="./games/snake.html" class="game-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="bg-gradient-to-br from-green-400 to-green-600 h-40 flex items-center justify-center text-5xl">
+                    🐍
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Snake Game</h3>
+                    <p class="text-gray-600 mb-4">Classic snake game. Eat and grow without hitting walls!</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-500">⭐ 4.8 (245 plays)</span>
+                        <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">Easy</span>
+                    </div>
+                    <div class="play-btn">
+                        <span>▶</span> Play Now
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game Card 2: Flappy Bird -->
+            <a href="./games/flappy.html" class="game-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="bg-gradient-to-br from-yellow-400 to-orange-500 h-40 flex items-center justify-center text-5xl">
+                    🐦
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Flappy Bird</h3>
+                    <p class="text-gray-600 mb-4">Tap to fly! Navigate through pipes and beat your high score.</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-500">⭐ 4.6 (189 plays)</span>
+                        <span class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-semibold">Medium</span>
+                    </div>
+                    <div class="play-btn">
+                        <span>▶</span> Play Now
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game Card 3: Brick Breaker -->
+            <a href="./games/brick-breaker.html" class="game-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="bg-gradient-to-br from-blue-400 to-purple-600 h-40 flex items-center justify-center text-5xl">
+                    🧱
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Brick Breaker</h3>
+                    <p class="text-gray-600 mb-4">Break all bricks with your paddle. Classic arcade action!</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-500">⭐ 4.7 (267 plays)</span>
+                        <span class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">Medium</span>
+                    </div>
+                    <div class="play-btn">
+                        <span>▶</span> Play Now
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game Card 4: Pong -->
+            <a href="./games/pong.html" class="game-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="bg-gradient-to-br from-pink-400 to-red-500 h-40 flex items-center justify-center text-5xl">
+                    🏓
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Pong</h3>
+                    <p class="text-gray-600 mb-4">Play against the computer. Classic 2-player Pong!</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-500">⭐ 4.5 (156 plays)</span>
+                        <span class="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-semibold">Easy</span>
+                    </div>
+                    <div class="play-btn">
+                        <span>▶</span> Play Now
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game Card 5: Memory Match -->
+            <a href="./games/memory.html" class="game-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="bg-gradient-to-br from-indigo-400 to-blue-600 h-40 flex items-center justify-center text-5xl">
+                    🧠
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Memory Match</h3>
+                    <p class="text-gray-600 mb-4">Test your memory! Match all pairs with minimal moves.</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-500">⭐ 4.9 (312 plays)</span>
+                        <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-semibold">Easy</span>
+                    </div>
+                    <div class="play-btn">
+                        <span>▶</span> Play Now
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game Card 6: Space Shooter -->
+            <a href="./games/space-shooter.html" class="game-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="bg-gradient-to-br from-slate-600 to-slate-900 h-40 flex items-center justify-center text-5xl">
+                    🚀
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Space Shooter</h3>
+                    <p class="text-gray-600 mb-4">Shoot enemies and survive waves. Action-packed fun!</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-500">⭐ 4.4 (201 plays)</span>
+                        <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-semibold">Hard</span>
+                    </div>
+                    <div class="play-btn">
+                        <span>▶</span> Play Now
+                    </div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="bg-gray-100 py-8 md:py-12 px-4 mt-8">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="text-4xl font-bold theme-green mb-2">6</div>
+                <p class="text-gray-600">Amazing Games</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="text-4xl font-bold theme-orange mb-2">1K+</div>
+                <p class="text-gray-600">Active Players</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="text-4xl font-bold mb-2" style="color: #8b5cf6;">∞</div>
+                <p class="text-gray-600">Fun & Free</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="gradient-green-orange text-white py-12 px-4 mt-8">
+        <div class="max-w-2xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-4">Ready to Play?</h2>
+            <p class="text-lg opacity-90 mb-8">Create an account to track your high scores and compete with friends!</p>
+            <a href="./signup.html" class="inline-block px-8 py-4 bg-white text-green-600 font-bold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                Get Started Now
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <p class="mb-2">&copy; 2026 GameJio. All rights reserved.</p>
+            <p class="text-gray-400">Made with ❤️ in Green & Orange</p>
+        </div>
+    </footer>
+
+    <script src="./js/auth.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+</html>
+
+
