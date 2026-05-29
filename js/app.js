@@ -26,7 +26,7 @@ function initIndexPage() {
 }
 
 // Call on page load for index.html
-if (document.body && (window.location.pathname === './index.html' || window.location.pathname.endsWith('./index.html') || window.location.pathname === './')) {
+if (document.body && (window.location.pathname === '../index.html' || window.location.pathname.endsWith('./index.html') || window.location.pathname === '../')) {
     window.addEventListener('load', initIndexPage);
     initIndexPage();
 }
