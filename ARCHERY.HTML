@@ -3,112 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Archery</title>
+    <title>Neon Archery - GameJio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-        body {
-            background-color: #050507;
-            color: #fff;
+        .font-orbitron {
             font-family: 'Orbitron', sans-serif;
-            margin: 0;
-            overflow: hidden;
-            touch-action: none;
-            user-select: none;
         }
 
-        #game-container {
+        .gradient-cyan-blue {
+            background: linear-gradient(135deg, #00f2ff 0%, #0066ff 100%);
+        }
+
+        /* Container styling for the neon canvas game */
+        .canvas-container {
             position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             background: radial-gradient(circle at center, #111122 0%, #050507 100%);
+            border: 3px solid #00f2ff;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            touch-action: none; /* Prevents double-tap zoom and scrolling interference on mobile */
         }
 
         canvas {
             display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+            background: transparent;
+            cursor: pointer;
             touch-action: none;
         }
 
-        .ui-layer {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
-
-        .stat-box {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(5px);
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 242, 255, 0.3);
-            text-align: center;
-        }
-
-        .stat-label { font-size: 10px; color: #00f2ff; text-transform: uppercase; }
-        .stat-value { font-size: 24px; font-weight: bold; }
-
-        #menu {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            text-align: center;
-        }
-
-        .title {
-            font-size: 64px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(to bottom, #00f2ff, #0066ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
-        }
-
-        .btn {
-            background: #00f2ff;
-            color: #000;
-            padding: 15px 50px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            pointer-events: auto;
-            border: none;
-            margin-top: 30px;
-        }
-
-        .btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(0, 242, 255, 0.6);
-        }
-
         #timer-bar-container {
-            width: 200px;
+            width: 100%;
             height: 6px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
-            margin-top: 10px;
             overflow: hidden;
         }
 
@@ -119,132 +52,290 @@
             transition: width 0.1s linear;
         }
 
+        /* Float up neon scores */
         .floating-score {
             position: absolute;
             pointer-events: none;
             color: #fff;
             font-weight: bold;
-            font-size: 24px;
+            font-size: 16px;
+            font-family: 'Orbitron', sans-serif;
             text-shadow: 0 0 10px #00f2ff;
             animation: floatUp 1s ease-out forwards;
+            z-index: 10;
         }
 
         @keyframes floatUp {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-100px); opacity: 0; }
+            100% { transform: translateY(-60px); opacity: 0; }
         }
     </style>
 </head>
-<body>
-
-<div id="game-container">
-    <canvas id="gameCanvas"></canvas>
-
-    <div class="ui-layer">
-        <div class="stats">
-            <div class="stat-box">
-                <div class="stat-label">Score</div>
-                <div id="score-val" class="stat-value">0</div>
+<body class="bg-gray-950 text-gray-100 font-orbitron min-h-screen select-none">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 border-b border-gray-800 shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
+            <a href="./index.html" class="text-lg md:text-xl font-bold gradient-cyan-blue bg-clip-text text-transparent">🎮 GameJio</a>
+            <div class="flex items-center gap-3 md:gap-4">
+                <span id="userName" class="text-xs md:text-sm font-medium text-gray-300 hidden"></span>
+                <button id="logoutBtn" class="px-3 py-1.5 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-xs md:text-sm hidden">
+                    Logout
+                </button>
+                <a href="./login.html" class="px-3 py-1.5 md:px-4 md:py-2 bg-cyan-500 text-black rounded-lg font-bold hover:bg-cyan-400 transition-colors text-xs md:text-sm" id="loginLink">
+                    Login
+                </a>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Arrows</div>
-                <div id="arrows-val" class="stat-value">10</div>
-                <div id="timer-bar-container"><div id="timer-bar"></div></div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-3 py-4 md:py-8">
+        <div class="bg-gray-900 rounded-lg shadow-2xl p-4 md:p-8 border border-gray-800">
+            <h1 class="text-2xl md:text-4xl font-bold text-center gradient-cyan-blue bg-clip-text text-transparent mb-4 md:mb-6 tracking-wider">🎯 Neon Archery</h1>
+            
+            <!-- Statistics Grid - Now super compact and fully responsive on mobile -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8">
+                <div class="bg-cyan-950/40 border border-cyan-800/50 p-2 md:p-4 rounded-lg text-center">
+                    <p class="text-cyan-400 text-[10px] uppercase tracking-widest mb-0.5 md:mb-1">Score</p>
+                    <p id="score" class="text-xl md:text-3xl font-bold text-white">0</p>
+                </div>
+                <div class="bg-blue-950/40 border border-blue-800/50 p-2 md:p-4 rounded-lg text-center">
+                    <p class="text-blue-400 text-[10px] uppercase tracking-widest mb-0.5 md:mb-1">Arrows</p>
+                    <p id="arrows" class="text-xl md:text-3xl font-bold text-white">10</p>
+                </div>
+                <div class="bg-purple-950/40 border border-purple-800/50 p-2 md:p-4 rounded-lg text-center">
+                    <p class="text-purple-400 text-[10px] uppercase tracking-widest mb-0.5 md:mb-1">Best Score</p>
+                    <p id="highScore" class="text-xl md:text-3xl font-bold text-white">0</p>
+                </div>
+                <div class="bg-gray-850 border border-gray-800 p-2 md:p-4 rounded-lg text-center col-span-2 md:col-span-1 flex flex-col justify-center">
+                    <p class="text-gray-400 text-[10px] uppercase tracking-widest mb-1">Auto-Shoot Timer</p>
+                    <div id="timer-bar-container" class="mt-1">
+                        <div id="timer-bar"></div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Best</div>
-                <div id="best-val" class="stat-value">0</div>
+
+            <!-- Game Canvas Frame with Hover Start Menu overlay -->
+            <div id="game-container" class="canvas-container mb-4 md:mb-8">
+                <canvas id="gameCanvas" width="800" height="450" class="w-full"></canvas>
+
+                <!-- Start / Game Over Overlay Menu (Mobile Responsive sizes) -->
+                <div id="menu-overlay" class="absolute inset-0 bg-black/90 flex flex-col items-center justify-center text-center p-4 md:p-6 z-20">
+                    <h2 class="text-2xl md:text-5xl font-extrabold text-cyan-400 mb-1 md:mb-2 drop-shadow-[0_0_10px_rgba(0,242,255,0.6)] tracking-wide">NEON ARCHERY</h2>
+                    <p id="status" class="text-gray-400 text-xs md:text-base max-w-sm md:max-w-md mb-4 md:mb-6 leading-relaxed">
+                        Master the futuristic bow. Clear hits grant extra arrows and power. Tap inside the game board to release.
+                    </p>
+                    <button id="start-btn" class="px-6 py-2.5 md:px-8 md:py-3 bg-cyan-400 hover:bg-cyan-300 text-black font-bold uppercase tracking-widest text-xs md:text-sm rounded-full shadow-[0_0_20px_rgba(0,242,255,0.4)] transition-all transform hover:scale-105 active:scale-95">
+                        Start Mission
+                    </button>
+                </div>
+            </div>
+
+            <!-- How To Play Instructions -->
+            <div class="bg-gray-950/80 border border-cyan-900/40 p-4 md:p-6 rounded-lg">
+                <h3 class="text-sm md:text-lg font-bold text-cyan-400 mb-2 md:mb-3 tracking-wider">How to Play</h3>
+                <ul class="space-y-2 md:space-y-3 text-gray-300 text-xs md:text-base font-sans">
+                    <li class="flex items-start gap-2">
+                        <span class="text-cyan-400 font-orbitron">⚡</span> 
+                        <span><strong>Tap or Click:</strong> Press anywhere inside the glowing game board to release your neon energy arrow.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-cyan-400 font-orbitron">🏹</span> 
+                        <span><strong>Hit the Moving Beacon:</strong> Time your shots perfectly to strike the traveling vertical neon target on the right.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-cyan-400 font-orbitron">🎯</span> 
+                        <span><strong>Aim for Bullseyes:</strong> Hit the center of the bar to get a <strong>BULLSEYE (+10 points &amp; +2 arrows)</strong>. Great hits near the center grant <strong>(+5 points &amp; +1 arrow)</strong>.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-cyan-400 font-orbitron">⏱️</span> 
+                        <span><strong>Cooldown Watch:</strong> Do not wait too long! The auto-shoot cooldown bar fills constantly. It will release an arrow automatically once complete.</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 
-    <div id="menu">
-        <h1 class="title">NEON<br>ARCHERY</h1>
-        <p id="result-text">Master the bow. Perfect hits grant extra arrows.</p>
-        <button id="start-btn" class="btn">Start Mission</button>
-    </div>
-</div>
+    <!-- GameJio Global Hooks & Authentication Scripts -->
+    <script src="./js/auth.js"></script>
+    <script src="./js/app.js"></script>
+    <script>
+        // --- Fallbacks for missing GameJio Environment Scripts ---
+        if (typeof protectGamePage !== 'function') {
+            window.protectGamePage = function() {
+                console.warn('GameJio protectGamePage() is not defined. Using local fallback.');
+            };
+        }
+        if (typeof initGamePage !== 'function') {
+            window.initGamePage = function(gameName) {
+                console.warn('GameJio initGamePage() is not defined. Using local fallback.');
+                // Update navigation visual state fallback if element exists
+                const userNameEl = document.getElementById('userName');
+                if (userNameEl) {
+                    userNameEl.textContent = "Guest Player";
+                    userNameEl.classList.remove('hidden');
+                }
+            };
+        }
+        if (typeof getHighScore !== 'function') {
+            window.getHighScore = function(gameName) {
+                console.warn('GameJio getHighScore() is not defined. Fetching from localStorage.');
+                return parseInt(localStorage.getItem('neonArcheryBest') || '0', 10);
+            };
+        }
+        if (typeof showGameOverScreen !== 'function') {
+            window.showGameOverScreen = function(score, gameName, restartCallback) {
+                console.warn('GameJio showGameOverScreen() is not defined. Using local restart routine.');
+                // Update local storage high score
+                const currentBest = parseInt(localStorage.getItem('neonArcheryBest') || '0', 10);
+                if (score > currentBest) {
+                    localStorage.setItem('neonArcheryBest', score);
+                }
+                // Call restart directly to allow loop continuation
+                if (restartCallback) restartCallback();
+            };
+        }
 
-<script>
-    window.addEventListener('load', () => {
+        // Restrict page entry if authentication is required by global framework
+        protectGamePage();
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const menu = document.getElementById('menu');
-        const startBtn = document.getElementById('start-btn');
-        const resultText = document.getElementById('result-text');
         
-        const scoreVal = document.getElementById('score-val');
-        const arrowsVal = document.getElementById('arrows-val');
-        const bestVal = document.getElementById('best-val');
+        const menuOverlay = document.getElementById('menu-overlay');
+        const startBtn = document.getElementById('start-btn');
+        const statusDisplay = document.getElementById('status');
+        
+        const scoreDisplay = document.getElementById('score');
+        const arrowsDisplay = document.getElementById('arrows');
+        const highScoreDisplay = document.getElementById('highScore');
         const timerBar = document.getElementById('timer-bar');
 
-        let width, height;
         let gameActive = false;
         let score = 0;
         let arrows = 10;
-        let bestScore = localStorage.getItem('neonArcheryBest') || 0;
-        bestVal.innerText = bestScore;
+        let highScore = getHighScore('Neon Archery');
+        highScoreDisplay.textContent = highScore;
 
         let lastTime = 0;
         let shotTimer = 0;
         const SHOT_COOLDOWN = 5000; // 5 seconds auto-shoot
 
-        // --- Game Objects ---
+        // Game Entities
         const player = {
             x: 80,
-            y: 0,
-            targetY: 0,
-            lerpSpeed: 0.1,
+            y: 225,
             size: 60,
             dy: 2,
             direction: 1
         };
 
         const target = {
-            x: 0,
-            y: 0,
+            x: 700,
+            y: 225,
             w: 20,
-            h: 120,
-            dy: 3,
+            h: 110,
+            dy: 3.2,
             direction: 1
         };
 
         let currentArrow = null;
         let particles = [];
 
-        function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            player.y = height / 2;
-            target.x = width - 100;
-            target.y = height / 2;
+        function initGamePageStats() {
+            initGamePage('Neon Archery');
+            highScore = getHighScore('Neon Archery');
+            highScoreDisplay.textContent = highScore;
+            drawInitialState();
         }
 
-        window.addEventListener('resize', resize);
-        resize();
+        function drawInitialState() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawBow();
+            drawTarget();
+        }
 
-        // --- Logic ---
-        function spawnParticle(x, y, color) {
-            for (let i = 0; i < 8; i++) {
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            for (let i = 0; i < canvas.height; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+        }
+
+        function drawTarget() {
+            ctx.save();
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ff0055';
+            ctx.fillStyle = '#ff0055';
+            ctx.fillRect(target.x, target.y - target.h / 2, target.w, target.h);
+            
+            // Bullseye central region
+            ctx.shadowColor = '#ffffff';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(target.x, target.y - 6, target.w, 12);
+            ctx.restore();
+        }
+
+        function drawBow() {
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00f2ff';
+            ctx.strokeStyle = '#00f2ff';
+            ctx.lineWidth = 4;
+            
+            // Arc representing the Neon Bow
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, 45, -Math.PI / 2, Math.PI / 2);
+            ctx.stroke();
+
+            // Neon String
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y - 45);
+            ctx.lineTo(player.x - 15, player.y);
+            ctx.lineTo(player.x, player.y + 45);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function spawnParticles(x, y, color) {
+            for (let i = 0; i < 12; i++) {
                 particles.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
                     life: 1.0,
-                    color: color
+                    color: color,
+                    size: Math.random() * 3 + 2
                 });
             }
         }
 
         function createFloatingText(text, x, y) {
+            const container = document.getElementById('game-container');
+            
+            // Calculate proportional position inside the actual container wrapper
+            const percentX = (x / canvas.width) * 100;
+            const percentY = (y / canvas.height) * 100;
+
             const el = document.createElement('div');
             el.className = 'floating-score';
             el.innerText = text;
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-            document.getElementById('game-container').appendChild(el);
+            el.style.left = `${percentX}%`;
+            el.style.top = `${percentY}%`;
+            
+            container.appendChild(el);
             setTimeout(() => el.remove(), 1000);
         }
 
@@ -252,10 +343,10 @@
             if (!gameActive || currentArrow || arrows <= 0) return;
             
             currentArrow = {
-                x: player.x + 20,
+                x: player.x + 15,
                 y: player.y,
-                speed: 25,
-                width: 50,
+                speed: 24,
+                width: 45,
                 active: true
             };
             
@@ -265,197 +356,232 @@
         }
 
         function updateUI() {
-            scoreVal.innerText = score;
-            arrowsVal.innerText = arrows;
-            if (score > bestScore) {
-                bestScore = score;
-                bestVal.innerText = bestScore;
-                localStorage.setItem('neonArcheryBest', bestScore);
+            scoreDisplay.textContent = score;
+            arrowsDisplay.textContent = arrows;
+            if (score > highScore) {
+                highScore = score;
+                highScoreDisplay.textContent = highScore;
+                // update local storage immediately for robustness
+                localStorage.setItem('neonArcheryBest', highScore);
             }
         }
 
-        function gameOver() {
-            gameActive = false;
-            menu.style.display = 'flex';
-            resultText.innerText = `Mission Over. Score: ${score}`;
-            startBtn.innerText = "Try Again";
-        }
-
-        function initGame() {
-            score = 0;
-            arrows = 10;
-            gameActive = true;
-            menu.style.display = 'none';
-            player.dy = 2;
-            target.dy = 3;
-            updateUI();
-        }
-
-        // --- Loop ---
-        function update(delta) {
+        function updateGame(delta) {
             if (!gameActive) return;
 
-            // Timer Bar
+            // Timer Bar & Cooldown progress
             shotTimer += delta;
             const progress = Math.max(0, 1 - (shotTimer / SHOT_COOLDOWN));
             timerBar.style.width = (progress * 100) + '%';
-            if (shotTimer >= SHOT_COOLDOWN) shoot();
+            
+            if (shotTimer >= SHOT_COOLDOWN) {
+                shoot();
+            }
 
-            // Player Movement
+            // Player Bow vertical oscillation
             player.y += player.dy * player.direction;
-            if (player.y < 80 || player.y > height - 80) player.direction *= -1;
+            if (player.y < 60 || player.y > canvas.height - 60) {
+                player.direction *= -1;
+            }
 
-            // Target Movement
+            // Target vertical oscillation
             target.y += target.dy * target.direction;
-            if (target.y < 100 || target.y > height - 100) target.direction *= -1;
+            if (target.y < 80 || target.y > canvas.height - 80) {
+                target.direction *= -1;
+            }
 
-            // Arrow Physics
+            // Arrow logic
             if (currentArrow) {
                 currentArrow.x += currentArrow.speed;
 
-                // Collision
-                if (currentArrow.x + currentArrow.width > target.x) {
+                // Collision detection with target
+                if (currentArrow.x + currentArrow.width >= target.x) {
                     const hitY = currentArrow.y;
                     const targetTop = target.y - target.h / 2;
                     const targetBottom = target.y + target.h / 2;
 
                     if (hitY >= targetTop && hitY <= targetBottom) {
-                        // HIT!
+                        // Arrow hit target
                         const diff = Math.abs(hitY - target.y);
                         let points = 1;
                         let color = '#00f2ff';
 
-                        if (diff < 10) { 
+                        if (diff <= 8) { 
                             points = 10; 
                             arrows += 2; 
-                            color = '#fffc00';
-                            createFloatingText("BULLSEYE! +2 ARROWS", target.x - 100, hitY);
-                        } else if (diff < 30) {
+                            color = '#ffffff';
+                            createFloatingText("BULLSEYE! +2 ARROWS", target.x - 120, hitY);
+                        } else if (diff <= 25) {
                             points = 5;
                             arrows += 1;
+                            color = '#00f2ff';
                             createFloatingText("GREAT! +1 ARROW", target.x - 100, hitY);
                         } else {
-                            createFloatingText("+1", target.x - 50, hitY);
+                            createFloatingText("+1 PT", target.x - 50, hitY);
                         }
 
                         score += points;
-                        spawnParticle(target.x, hitY, color);
+                        spawnParticles(target.x, hitY, color);
                         
-                        // Scale difficulty
-                        target.dy = 3 + (score * 0.1);
-                        player.dy = 2 + (score * 0.05);
+                        // Scale game difficulty progressively
+                        target.dy = 3.2 + (score * 0.12);
+                        player.dy = 2.0 + (score * 0.08);
 
                     } else {
-                        // MISS
+                        // Arrow completely missed
                         createFloatingText("MISS", target.x, hitY);
+                        spawnParticles(currentArrow.x + currentArrow.width, currentArrow.y, '#555555');
                     }
                     
                     currentArrow = null;
                     updateUI();
+
+                    // Game over evaluation
                     if (arrows <= 0 && !currentArrow) {
-                        setTimeout(gameOver, 1000);
+                        setTimeout(endGame, 800);
                     }
                 }
             }
 
-            // Particles
-            particles.forEach((p, i) => {
+            // Particle tracking
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
                 p.x += p.vx;
                 p.y += p.vy;
-                p.life -= 0.02;
-                if (p.life <= 0) particles.splice(i, 1);
-            });
+                p.life -= 0.025;
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, width, height);
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Background Grid
-            ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
-            ctx.lineWidth = 1;
-            for(let i=0; i<width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,height); ctx.stroke(); }
-            for(let i=0; i<height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(width,i); ctx.stroke(); }
+            // Background
+            drawGrid();
 
-            // Draw Target
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#ff0055';
-            ctx.fillStyle = '#ff0055';
-            ctx.fillRect(target.x, target.y - target.h / 2, target.w, target.h);
-            
-            // Target segments
-            ctx.fillStyle = 'white';
-            ctx.fillRect(target.x, target.y - 5, target.w, 10); // Center
+            // Target
+            drawTarget();
 
-            // Draw Player Bow
-            ctx.shadowColor = '#00f2ff';
-            ctx.strokeStyle = '#00f2ff';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.arc(player.x, player.y, 50, -Math.PI/2, Math.PI/2);
-            ctx.stroke();
+            // Bow
+            drawBow();
 
-            // Draw Rope
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(player.x, player.y - 50);
-            ctx.lineTo(player.x - 20, player.y);
-            ctx.lineTo(player.x, player.y + 50);
-            ctx.stroke();
-
-            // Draw Arrow
+            // Active fly arrow
             if (currentArrow) {
-                ctx.shadowColor = '#fff';
-                ctx.fillStyle = '#fff';
+                ctx.save();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ffffff';
+                ctx.fillStyle = '#ffffff';
                 ctx.fillRect(currentArrow.x, currentArrow.y - 2, currentArrow.width, 4);
-                // Tip
+                
+                // Neon arrow head
                 ctx.beginPath();
                 ctx.moveTo(currentArrow.x + currentArrow.width, currentArrow.y - 6);
                 ctx.lineTo(currentArrow.x + currentArrow.width + 10, currentArrow.y);
                 ctx.lineTo(currentArrow.x + currentArrow.width, currentArrow.y + 6);
                 ctx.fill();
+                ctx.restore();
             } else if (gameActive && arrows > 0) {
-                // Loaded arrow
-                ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                ctx.fillRect(player.x - 20, player.y - 2, 50, 4);
+                // Static loaded transparent arrow inside bow string
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.fillRect(player.x - 15, player.y - 2, 45, 4);
             }
 
-            // Draw Particles
-            ctx.shadowBlur = 0;
+            // Particle effects
             particles.forEach(p => {
+                ctx.save();
                 ctx.globalAlpha = p.life;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = p.color;
                 ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, 4, 4);
-            });
-            ctx.globalAlpha = 1;
-
-            requestAnimationFrame((t) => {
-                const delta = t - lastTime;
-                lastTime = t;
-                update(delta);
-                draw();
+                ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+                ctx.restore();
             });
         }
 
-        // --- Interaction ---
-        const handleAction = (e) => {
-            if (e.target.tagName === 'BUTTON') return;
+        let animationFrameId;
+        function gameLoop(currentTime) {
+            if (!lastTime) lastTime = currentTime;
+            const delta = currentTime - lastTime;
+            lastTime = currentTime;
+
+            updateGame(delta);
+            drawGame();
+            
+            if (gameActive) {
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function startGame() {
+            if (!gameActive) {
+                score = 0;
+                arrows = 10;
+                player.dy = 2;
+                target.dy = 3.2;
+                particles = [];
+                currentArrow = null;
+                shotTimer = 0;
+                
+                gameActive = true;
+                updateUI();
+                menuOverlay.classList.add('hidden');
+                
+                lastTime = 0;
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            cancelAnimationFrame(animationFrameId);
+            
+            timerBar.style.width = '0%';
+            menuOverlay.classList.remove('hidden');
+            
+            statusDisplay.innerHTML = `<span class="text-rose-500 font-bold block text-xl md:text-2xl mb-1 md:mb-2">MISSION OVER</span> Your Score: <span class="text-white font-bold text-lg md:text-xl">${score}</span>`;
+            startBtn.textContent = 'Retry Mission';
+
+            // Push high score up to global GameJio system
+            showGameOverScreen(score, 'Neon Archery', () => {
+                startGame();
+            });
+        }
+
+        // Action Trigger (constrain clicks only inside the Canvas wrapper context)
+        const triggerShot = (e) => {
+            // Guard to make sure users do not accidentally trigger a shot when clicking menu buttons
+            if (!gameActive) return;
+            if (e.target.tagName === 'BUTTON' || e.target.closest('nav') || e.target.closest('.ui-layer')) return;
             shoot();
         };
 
-        window.addEventListener('mousedown', handleAction);
-        window.addEventListener('touchstart', (e) => {
-            if (e.target.tagName !== 'BUTTON') {
-                e.preventDefault();
-                shoot();
+        // Event Bindings
+        canvas.addEventListener('mousedown', triggerShot);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Stop double trigger or viewport shifting on mobile tap
+            triggerShot(e);
+        }, { passive: false });
+
+        // Keyboard alternative spacebar
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.code === 'Space') {
+                if (gameActive) {
+                    e.preventDefault();
+                    shoot();
+                }
             }
-        }, {passive: false});
+        });
 
-        startBtn.addEventListener('click', initGame);
+        startBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startGame();
+        });
 
-        // Start loop
-        requestAnimationFrame(draw);
-    });
-</script>
-
+        document.addEventListener('DOMContentLoaded', () => {
+            initGamePageStats();
+        });
+    </script>
 </body>
 </html>
