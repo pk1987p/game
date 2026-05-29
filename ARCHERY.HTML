@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Archery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        body {
+            background-color: #050507;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #111122 0%, #050507 100%);
+        }
+
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+
+        .ui-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            text-align: center;
+        }
+
+        .stat-label { font-size: 10px; color: #00f2ff; text-transform: uppercase; }
+        .stat-value { font-size: 24px; font-weight: bold; }
+
+        #menu {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 64px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(to bottom, #00f2ff, #0066ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
+        }
+
+        .btn {
+            background: #00f2ff;
+            color: #000;
+            padding: 15px 50px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            pointer-events: auto;
+            border: none;
+            margin-top: 30px;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.6);
+        }
+
+        #timer-bar-container {
+            width: 200px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: #00f2ff;
+            transition: width 0.1s linear;
+        }
+
+        .floating-score {
+            position: absolute;
+            pointer-events: none;
+            color: #fff;
+            font-weight: bold;
+            font-size: 24px;
+            text-shadow: 0 0 10px #00f2ff;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="ui-layer">
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div id="score-val" class="stat-value">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Arrows</div>
+                <div id="arrows-val" class="stat-value">10</div>
+                <div id="timer-bar-container"><div id="timer-bar"></div></div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Best</div>
+                <div id="best-val" class="stat-value">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu">
+        <h1 class="title">NEON<br>ARCHERY</h1>
+        <p id="result-text">Master the bow. Perfect hits grant extra arrows.</p>
+        <button id="start-btn" class="btn">Start Mission</button>
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', () => {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const menu = document.getElementById('menu');
+        const startBtn = document.getElementById('start-btn');
+        const resultText = document.getElementById('result-text');
+        
+        const scoreVal = document.getElementById('score-val');
+        const arrowsVal = document.getElementById('arrows-val');
+        const bestVal = document.getElementById('best-val');
+        const timerBar = document.getElementById('timer-bar');
+
+        let width, height;
+        let gameActive = false;
+        let score = 0;
+        let arrows = 10;
+        let bestScore = localStorage.getItem('neonArcheryBest') || 0;
+        bestVal.innerText = bestScore;
+
+        let lastTime = 0;
+        let shotTimer = 0;
+        const SHOT_COOLDOWN = 5000; // 5 seconds auto-shoot
+
+        // --- Game Objects ---
+        const player = {
+            x: 80,
+            y: 0,
+            targetY: 0,
+            lerpSpeed: 0.1,
+            size: 60,
+            dy: 2,
+            direction: 1
+        };
+
+        const target = {
+            x: 0,
+            y: 0,
+            w: 20,
+            h: 120,
+            dy: 3,
+            direction: 1
+        };
+
+        let currentArrow = null;
+        let particles = [];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            player.y = height / 2;
+            target.x = width - 100;
+            target.y = height / 2;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- Logic ---
+        function spawnParticle(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function createFloatingText(text, x, y) {
+            const el = document.createElement('div');
+            el.className = 'floating-score';
+            el.innerText = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.getElementById('game-container').appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function shoot() {
+            if (!gameActive || currentArrow || arrows <= 0) return;
+            
+            currentArrow = {
+                x: player.x + 20,
+                y: player.y,
+                speed: 25,
+                width: 50,
+                active: true
+            };
+            
+            arrows--;
+            shotTimer = 0;
+            updateUI();
+        }
+
+        function updateUI() {
+            scoreVal.innerText = score;
+            arrowsVal.innerText = arrows;
+            if (score > bestScore) {
+                bestScore = score;
+                bestVal.innerText = bestScore;
+                localStorage.setItem('neonArcheryBest', bestScore);
+            }
+        }
+
+        function gameOver() {
+            gameActive = false;
+            menu.style.display = 'flex';
+            resultText.innerText = `Mission Over. Score: ${score}`;
+            startBtn.innerText = "Try Again";
+        }
+
+        function initGame() {
+            score = 0;
+            arrows = 10;
+            gameActive = true;
+            menu.style.display = 'none';
+            player.dy = 2;
+            target.dy = 3;
+            updateUI();
+        }
+
+        // --- Loop ---
+        function update(delta) {
+            if (!gameActive) return;
+
+            // Timer Bar
+            shotTimer += delta;
+            const progress = Math.max(0, 1 - (shotTimer / SHOT_COOLDOWN));
+            timerBar.style.width = (progress * 100) + '%';
+            if (shotTimer >= SHOT_COOLDOWN) shoot();
+
+            // Player Movement
+            player.y += player.dy * player.direction;
+            if (player.y < 80 || player.y > height - 80) player.direction *= -1;
+
+            // Target Movement
+            target.y += target.dy * target.direction;
+            if (target.y < 100 || target.y > height - 100) target.direction *= -1;
+
+            // Arrow Physics
+            if (currentArrow) {
+                currentArrow.x += currentArrow.speed;
+
+                // Collision
+                if (currentArrow.x + currentArrow.width > target.x) {
+                    const hitY = currentArrow.y;
+                    const targetTop = target.y - target.h / 2;
+                    const targetBottom = target.y + target.h / 2;
+
+                    if (hitY >= targetTop && hitY <= targetBottom) {
+                        // HIT!
+                        const diff = Math.abs(hitY - target.y);
+                        let points = 1;
+                        let color = '#00f2ff';
+
+                        if (diff < 10) { 
+                            points = 10; 
+                            arrows += 2; 
+                            color = '#fffc00';
+                            createFloatingText("BULLSEYE! +2 ARROWS", target.x - 100, hitY);
+                        } else if (diff < 30) {
+                            points = 5;
+                            arrows += 1;
+                            createFloatingText("GREAT! +1 ARROW", target.x - 100, hitY);
+                        } else {
+                            createFloatingText("+1", target.x - 50, hitY);
+                        }
+
+                        score += points;
+                        spawnParticle(target.x, hitY, color);
+                        
+                        // Scale difficulty
+                        target.dy = 3 + (score * 0.1);
+                        player.dy = 2 + (score * 0.05);
+
+                    } else {
+                        // MISS
+                        createFloatingText("MISS", target.x, hitY);
+                    }
+                    
+                    currentArrow = null;
+                    updateUI();
+                    if (arrows <= 0 && !currentArrow) {
+                        setTimeout(gameOver, 1000);
+                    }
+                }
+            }
+
+            // Particles
+            particles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw Background Grid
+            ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for(let i=0; i<width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,height); ctx.stroke(); }
+            for(let i=0; i<height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(width,i); ctx.stroke(); }
+
+            // Draw Target
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ff0055';
+            ctx.fillStyle = '#ff0055';
+            ctx.fillRect(target.x, target.y - target.h / 2, target.w, target.h);
+            
+            // Target segments
+            ctx.fillStyle = 'white';
+            ctx.fillRect(target.x, target.y - 5, target.w, 10); // Center
+
+            // Draw Player Bow
+            ctx.shadowColor = '#00f2ff';
+            ctx.strokeStyle = '#00f2ff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, 50, -Math.PI/2, Math.PI/2);
+            ctx.stroke();
+
+            // Draw Rope
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y - 50);
+            ctx.lineTo(player.x - 20, player.y);
+            ctx.lineTo(player.x, player.y + 50);
+            ctx.stroke();
+
+            // Draw Arrow
+            if (currentArrow) {
+                ctx.shadowColor = '#fff';
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(currentArrow.x, currentArrow.y - 2, currentArrow.width, 4);
+                // Tip
+                ctx.beginPath();
+                ctx.moveTo(currentArrow.x + currentArrow.width, currentArrow.y - 6);
+                ctx.lineTo(currentArrow.x + currentArrow.width + 10, currentArrow.y);
+                ctx.lineTo(currentArrow.x + currentArrow.width, currentArrow.y + 6);
+                ctx.fill();
+            } else if (gameActive && arrows > 0) {
+                // Loaded arrow
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillRect(player.x - 20, player.y - 2, 50, 4);
+            }
+
+            // Draw Particles
+            ctx.shadowBlur = 0;
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 4, 4);
+            });
+            ctx.globalAlpha = 1;
+
+            requestAnimationFrame((t) => {
+                const delta = t - lastTime;
+                lastTime = t;
+                update(delta);
+                draw();
+            });
+        }
+
+        // --- Interaction ---
+        const handleAction = (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            shoot();
+        };
+
+        window.addEventListener('mousedown', handleAction);
+        window.addEventListener('touchstart', (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+                shoot();
+            }
+        }, {passive: false});
+
+        startBtn.addEventListener('click', initGame);
+
+        // Start loop
+        requestAnimationFrame(draw);
+    });
+</script>
+
+</body>
+</html>

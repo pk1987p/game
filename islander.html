@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Play | Island Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #game-canvas {
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            display: block;
+            margin: 0 auto;
+            image-rendering: pixelated;
+            border-bottom: 8px solid #3d251e;
+        }
+
+        .ui-overlay {
+            pointer-events: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .stat-box {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 2px solid #6366f1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #start-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .btn-play {
+            background: #6366f1;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 9999px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-play:hover {
+            transform: scale(1.05);
+            background: #4f46e5;
+        }
+
+        .controls-hint {
+            margin-top: 20px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1 class="text-6xl font-bold mb-4 text-indigo-500">ISLANDER</h1>
+        <p class="text-xl mb-8 text-slate-300">Adventure awaits in the tropical nexus.</p>
+        <button class="btn-play" onclick="startGame()">START GAME</button>
+        <div class="controls-hint">
+            <i class="fas fa-keyboard"></i> Use <b>Arrow Keys</b> or <b>WASD</b> to move and jump
+        </div>
+    </div>
+
+    <div class="ui-overlay">
+        <div class="stat-box">
+            <i class="fas fa-gem text-cyan-400"></i>
+            <span id="score" class="text-2xl font-bold">0</span>
+        </div>
+        <div class="stat-box">
+            <i class="fas fa-heart text-red-500"></i>
+            <span id="lives" class="text-2xl font-bold">3</span>
+        </div>
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+
+        // Configuration
+        const gravity = 0.8;
+        const friction = 0.8;
+        const groundY = 80; // Distance from bottom
+
+        // Game State
+        const player = {
+            x: 100,
+            y: 0,
+            width: 40,
+            height: 60,
+            dx: 0,
+            dy: 0,
+            speed: 5,
+            jumpForce: 15,
+            grounded: false,
+            color: '#f59e0b'
+        };
+
+        const keys = {};
+        let platforms = [];
+        let items = [];
+        let enemies = [];
+        let scrollOffset = 0;
+
+        function initLevel() {
+            platforms = [
+                { x: 0, y: canvas.height - 80, width: 2000, height: 80, type: 'ground' },
+                { x: 400, y: canvas.height - 220, width: 200, height: 20 },
+                { x: 700, y: canvas.height - 350, width: 150, height: 20 },
+                { x: 1000, y: canvas.height - 250, width: 300, height: 20 },
+                { x: 1400, y: canvas.height - 380, width: 100, height: 20 },
+                { x: 1700, y: canvas.height - 220, width: 300, height: 20 },
+            ];
+
+            items = [
+                { x: 450, y: canvas.height - 260, size: 20, collected: false },
+                { x: 750, y: canvas.height - 390, size: 20, collected: false },
+                { x: 1100, y: canvas.height - 290, size: 20, collected: false },
+                { x: 1200, y: canvas.height - 290, size: 20, collected: false },
+                { x: 1800, y: canvas.height - 260, size: 20, collected: false },
+            ];
+
+            enemies = [
+                { x: 600, y: canvas.height - 120, width: 40, height: 40, dx: 2, range: 200, startX: 600 },
+                { x: 1200, y: canvas.height - 120, width: 40, height: 40, dx: -2, range: 300, startX: 1200 }
+            ];
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            player.y = canvas.height - 200;
+            initLevel();
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            gameRunning = true;
+            score = 0;
+            lives = 3;
+            scrollOffset = 0;
+            scoreEl.innerText = score;
+            livesEl.innerText = lives;
+            resize();
+            requestAnimationFrame(update);
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            // Player Movement
+            if (keys['ArrowRight'] || keys['KeyD']) {
+                if (player.dx < player.speed) player.dx++;
+            }
+            if (keys['ArrowLeft'] || keys['KeyA']) {
+                if (player.dx > -player.speed) player.dx--;
+            }
+            if ((keys['ArrowUp'] || keys['KeyW'] || keys['Space']) && player.grounded) {
+                player.dy = -player.jumpForce;
+                player.grounded = false;
+            }
+
+            player.dx *= friction;
+            player.dy += gravity;
+            player.x += player.dx;
+            player.y += player.dy;
+
+            // Collision Detection (Platforms)
+            player.grounded = false;
+            platforms.forEach(p => {
+                if (player.x < p.x + p.width &&
+                    player.x + player.width > p.x &&
+                    player.y < p.y + p.height &&
+                    player.y + player.height > p.y) {
+                    
+                    // Collision from top
+                    if (player.dy > 0 && player.y + player.height - player.dy <= p.y) {
+                        player.dy = 0;
+                        player.y = p.y - player.height;
+                        player.grounded = true;
+                    }
+                }
+            });
+
+            // Camera Scroll
+            if (player.x > canvas.width / 2) {
+                scrollOffset = player.x - canvas.width / 2;
+            }
+
+            // Enemy Logic
+            enemies.forEach(en => {
+                en.x += en.dx;
+                if (Math.abs(en.x - en.startX) > en.range) en.dx *= -1;
+
+                // Player collision with enemy
+                if (player.x < en.x + en.width &&
+                    player.x + player.width > en.x &&
+                    player.y < en.y + en.height &&
+                    player.y + player.height > en.y) {
+                    
+                    // Stomp enemy
+                    if (player.dy > 0 && player.y + player.height - player.dy <= en.y) {
+                        player.dy = -10;
+                        enemies = enemies.filter(e => e !== en);
+                        score += 50;
+                        scoreEl.innerText = score;
+                    } else {
+                        // Take damage
+                        respawn();
+                    }
+                }
+            });
+
+            // Item Collection
+            items.forEach(item => {
+                if (!item.collected &&
+                    player.x < item.x + item.size &&
+                    player.x + player.width > item.x &&
+                    player.y < item.y + item.size &&
+                    player.y + player.height > item.y) {
+                    item.collected = true;
+                    score += 10;
+                    scoreEl.innerText = score;
+                }
+            });
+
+            // Screen boundaries
+            if (player.x < 0) player.x = 0;
+            if (player.y > canvas.height) respawn();
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function respawn() {
+            lives--;
+            livesEl.innerText = lives;
+            if (lives <= 0) {
+                gameRunning = false;
+                document.getElementById('start-screen').style.display = 'flex';
+                document.querySelector('h1').innerText = "GAME OVER";
+                document.querySelector('.btn-play').innerText = "TRY AGAIN";
+            } else {
+                player.x = 100 + scrollOffset;
+                player.y = 0;
+                player.dx = 0;
+                player.dy = 0;
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(-scrollOffset, 0);
+
+            // Draw Platforms
+            platforms.forEach(p => {
+                ctx.fillStyle = p.type === 'ground' ? '#4ade80' : '#fef08a';
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                
+                // Texture detail
+                if(p.type === 'ground') {
+                    ctx.fillStyle = '#166534';
+                    ctx.fillRect(p.x, p.y, p.width, 5);
+                }
+            });
+
+            // Draw Items (Gems)
+            items.forEach(item => {
+                if (!item.collected) {
+                    ctx.fillStyle = '#22d3ee';
+                    ctx.beginPath();
+                    ctx.moveTo(item.x + 10, item.y);
+                    ctx.lineTo(item.x + 20, item.y + 10);
+                    ctx.lineTo(item.x + 10, item.y + 20);
+                    ctx.lineTo(item.x, item.y + 10);
+                    ctx.fill();
+                }
+            });
+
+            // Draw Enemies
+            enemies.forEach(en => {
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(en.x, en.y, en.width, en.height);
+                // Eyes
+                ctx.fillStyle = 'white';
+                ctx.fillRect(en.x + 5, en.y + 10, 8, 8);
+                ctx.fillRect(en.x + 27, en.y + 10, 8, 8);
+            });
+
+            // Draw Player
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            // Cap
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(player.x - 5, player.y, player.width + 10, 15);
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(player.x + 25, player.y + 20, 8, 8);
+
+            ctx.restore();
+            
+            // Draw clouds (static UI or parallax)
+            drawCloud(100, 100);
+            drawCloud(400, 150);
+            drawCloud(800, 80);
+        }
+
+        function drawCloud(x, y) {
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(x, y, 30, 0, Math.PI * 2);
+            ctx.arc(x + 40, y, 40, 0, Math.PI * 2);
+            ctx.arc(x + 80, y, 30, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Initialize first frame
+        resize();
+        draw();
+
+    </script>
+</body>
+</html>
