@@ -170,7 +170,7 @@ async function logoutUser() {
     } finally {
         // Always clear auth data and redirect
         clearAuthData();
-        window.location.href = './index.html';
+        window.location.href = '../index.html';
     }
 }
 
