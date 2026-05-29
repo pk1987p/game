@@ -25,6 +25,18 @@
             overflow: hidden;
             box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
             touch-action: none; /* Prevents double-tap zoom and scrolling interference on mobile */
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Fullscreen mobile overlay class */
+        .mobile-fullscreen {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            z-index: 9999 !important;
+            border: none !important;
+            border-radius: 0 !important;
         }
 
         canvas {
@@ -65,35 +77,60 @@
             z-index: 10;
         }
 
+        /* Custom scrollbar for leaderboard list */
+        .leaderboard-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .leaderboard-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .leaderboard-scroll::-webkit-scrollbar-thumb {
+            background: #00f2ff;
+            border-radius: 2px;
+        }
+
         @keyframes floatUp {
             0% { transform: translateY(0); opacity: 1; }
             100% { transform: translateY(-60px); opacity: 0; }
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-orbitron min-h-screen select-none">
-    <!-- Navigation -->
-    <nav class="bg-slate-900 border-b border-slate-800 shadow-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
-            <a href="./index.html" class="text-lg md:text-xl font-bold gradient-cyan-blue bg-clip-text text-transparent">🎮 GameJio</a>
-            <div class="flex items-center gap-3 md:gap-4">
-                <span id="userName" class="text-xs md:text-sm font-medium text-slate-300 hidden"></span>
-                <button id="logoutBtn" class="px-3 py-1.5 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-xs md:text-sm hidden">
-                    Logout
-                </button>
-                <a href="./login.html" class="px-3 py-1.5 md:px-4 md:py-2 bg-cyan-500 text-black rounded-lg font-bold hover:bg-cyan-400 transition-colors text-xs md:text-sm" id="loginLink">
-                    Login
+<body class="bg-slate-950 text-slate-100 font-orbitron min-h-screen select-none flex flex-col justify-between">
+    
+    <!-- Top Header -->
+    <header id="main-header">
+        <nav class="bg-slate-900 border-b border-slate-800 shadow-md sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
+                <a href="./index.html" class="text-lg md:text-xl font-bold gradient-cyan-blue bg-clip-text text-transparent flex items-center gap-2">
+                    <span>🎮</span> GameJio
                 </a>
+                <div class="flex items-center gap-3 md:gap-4">
+                    <span id="userName" class="text-xs md:text-sm font-medium text-slate-300 hidden"></span>
+                    <button id="logoutBtn" class="px-3 py-1.5 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-xs md:text-sm hidden">
+                        Logout
+                    </button>
+                    <a href="./login.html" class="px-3 py-1.5 md:px-4 md:py-2 bg-cyan-500 text-black rounded-lg font-bold hover:bg-cyan-400 transition-colors text-xs md:text-sm" id="loginLink">
+                        Login
+                    </a>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <div class="max-w-4xl mx-auto px-3 py-4 md:py-8">
+    <!-- Main Game Container content -->
+    <main class="flex-grow max-w-4xl w-full mx-auto px-3 py-4 md:py-8">
         <div class="bg-slate-900 rounded-lg shadow-2xl p-4 md:p-8 border border-slate-800">
-            <h1 class="text-2xl md:text-4xl font-bold text-center gradient-cyan-blue bg-clip-text text-transparent mb-4 md:mb-6 tracking-wider">🎯 Neon Archery</h1>
             
-            <!-- Statistics Grid - Now super compact and fully responsive on mobile -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4 md:mb-6">
+                <h1 class="text-2xl md:text-4xl font-bold text-center sm:text-left gradient-cyan-blue bg-clip-text text-transparent tracking-wider">🎯 Neon Archery</h1>
+                <div class="text-center sm:text-right">
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest block md:inline md:mr-2">Mobile Mode:</span>
+                    <span class="text-xs text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-2 py-1 rounded">Auto Fullscreen</span>
+                </div>
+            </div>
+            
+            <!-- Statistics Grid -->
+            <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8">
                 <div class="bg-cyan-950/40 border border-cyan-800/50 p-2 md:p-4 rounded-lg text-center">
                     <p class="text-cyan-400 text-[10px] uppercase tracking-widest mb-0.5 md:mb-1">Score</p>
                     <p id="score" class="text-xl md:text-3xl font-bold text-white">0</p>
@@ -114,23 +151,69 @@
                 </div>
             </div>
 
-            <!-- Game Canvas Frame with Hover Start Menu overlay -->
+            <!-- Game Canvas Frame with Hover Start/End Menu overlay -->
             <div id="game-container" class="canvas-container mb-2">
                 <canvas id="gameCanvas" width="800" height="450" class="w-full"></canvas>
 
                 <!-- Start / Game Over Overlay Menu (Mobile Responsive sizes) -->
-                <div id="menu-overlay" class="absolute inset-0 bg-black/90 flex flex-col items-center justify-center text-center p-4 md:p-6 z-20">
-                    <h2 class="text-2xl md:text-5xl font-extrabold text-cyan-400 mb-1 md:mb-2 drop-shadow-[0_0_10px_rgba(0,242,255,0.6)] tracking-wide">NEON ARCHERY</h2>
-                    <p id="status" class="text-slate-400 text-xs md:text-base max-w-sm md:max-w-md mb-4 md:mb-6 leading-relaxed">
-                        Master the futuristic bow. Clear hits grant extra arrows and power. Tap inside the game board to release.
-                    </p>
-                    <button id="start-btn" class="px-6 py-2.5 md:px-8 md:py-3 bg-cyan-400 hover:bg-cyan-300 text-black font-bold uppercase tracking-widest text-xs md:text-sm rounded-full shadow-[0_0_20px_rgba(0,242,255,0.4)] transition-all transform hover:scale-105 active:scale-95">
-                        Start Mission
-                    </button>
+                <div id="menu-overlay" class="absolute inset-0 bg-black/90 flex flex-col items-center justify-center text-center p-4 md:p-6 z-20 overflow-y-auto">
+                    <h2 class="text-2xl md:text-5xl font-extrabold text-cyan-400 mb-1 md:mb-2 drop-shadow-[0_0_10px_rgba(0,242,255,0.6)] tracking-wide uppercase">NEON ARCHERY</h2>
+                    
+                    <div id="overlay-main-content" class="w-full max-w-md">
+                        <p id="status" class="text-slate-400 text-xs md:text-sm mb-4 leading-relaxed">
+                            Master the futuristic bow. Clear hits grant extra arrows and power. Tap inside the game board to release.
+                        </p>
+                    </div>
+
+                    <!-- Local Storage Submit High Score Form -->
+                    <div id="score-submit-container" class="hidden w-full max-w-sm bg-slate-950/80 border border-cyan-500/30 rounded-lg p-3 md:p-4 mb-4">
+                        <p class="text-cyan-400 text-xs md:text-sm font-bold uppercase mb-2">Submit Your Mission Score</p>
+                        <div class="flex gap-2">
+                            <input type="text" id="username-input" placeholder="Pilot Name" maxlength="15" 
+                                class="flex-grow bg-slate-900 border border-slate-750 text-white rounded px-3 py-1.5 text-xs md:text-sm font-sans focus:outline-none focus:border-cyan-400">
+                            <button id="submit-score-btn" class="bg-cyan-400 hover:bg-cyan-300 text-black font-bold px-4 py-1.5 rounded text-xs md:text-sm uppercase tracking-wider transition-colors">
+                                Submit
+                            </button>
+                        </div>
+                        <p id="submit-feedback" class="text-emerald-400 text-[10px] uppercase mt-1.5 hidden">Score recorded successfully!</p>
+                    </div>
+
+                    <!-- Local Storage Leaderboard Display -->
+                    <div id="leaderboard-container" class="w-full max-w-sm bg-slate-950/60 border border-slate-800 rounded-lg p-3 mb-4 hidden">
+                        <p class="text-[10px] md:text-xs text-slate-400 uppercase tracking-widest font-bold mb-2 border-b border-slate-800 pb-1 flex justify-between">
+                            <span>Top Pilots</span>
+                            <span>Score</span>
+                        </p>
+                        <div id="leaderboard-list" class="space-y-1 text-xs text-left max-h-24 md:max-h-32 overflow-y-auto leaderboard-scroll font-sans">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button id="start-btn" class="px-6 py-2.5 md:px-8 md:py-3 bg-cyan-400 hover:bg-cyan-300 text-black font-bold uppercase tracking-widest text-xs md:text-sm rounded-full shadow-[0_0_20px_rgba(0,242,255,0.4)] transition-all transform hover:scale-105 active:scale-95">
+                            Start Mission
+                        </button>
+                        <!-- Mobile Exit Fullscreen Button (Only appears when in full screen on mobile) -->
+                        <button id="mobile-exit-btn" class="hidden px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold uppercase tracking-widest text-xs rounded-full transition-all">
+                            Minimize Screen
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    <!-- Bottom Footer -->
+    <footer id="main-footer" class="bg-slate-900 border-t border-slate-800 py-6 text-center text-xs text-slate-500 font-sans mt-auto">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>&copy; 2026 GameJio Arcade. All Rights Reserved.</p>
+            <div class="flex gap-4">
+                <a href="./index.html" class="hover:text-cyan-400 transition-colors">Arcade Home</a>
+                <span>&bull;</span>
+                <span class="text-cyan-500 font-orbitron text-[10px]">NEON SYSTEM ACTIVE</span>
+            </div>
+        </div>
+    </footer>
 
     <!-- GameJio Global Hooks & Authentication Scripts -->
     <script src="./js/auth.js"></script>
@@ -187,6 +270,19 @@
         const highScoreDisplay = document.getElementById('highScore');
         const timerBar = document.getElementById('timer-bar');
 
+        const mainHeader = document.getElementById('main-header');
+        const mainFooter = document.getElementById('main-footer');
+        const gameContainer = document.getElementById('game-container');
+        const mobileExitBtn = document.getElementById('mobile-exit-btn');
+
+        // Leaderboard & score submission variables
+        const scoreSubmitContainer = document.getElementById('score-submit-container');
+        const usernameInput = document.getElementById('username-input');
+        const submitScoreBtn = document.getElementById('submit-score-btn');
+        const submitFeedback = document.getElementById('submit-feedback');
+        const leaderboardContainer = document.getElementById('leaderboard-container');
+        const leaderboardList = document.getElementById('leaderboard-list');
+
         let gameActive = false;
         let score = 0;
         let arrows = 10;
@@ -218,10 +314,104 @@
         let currentArrow = null;
         let particles = [];
 
+        // Check if device is mobile
+        function isMobileDevice() {
+            return (window.innerWidth < 768) || /Mobi|Android|iPhone/i.test(navigator.userAgent);
+        }
+
+        // Handles fullscreen adjustment
+        function updateScreenSizeState() {
+            if (gameActive && isMobileDevice()) {
+                mainHeader.classList.add('hidden');
+                mainFooter.classList.add('hidden');
+                gameContainer.classList.add('mobile-fullscreen');
+                mobileExitBtn.classList.remove('hidden');
+                resizeCanvasToViewport();
+            } else {
+                mainHeader.classList.remove('hidden');
+                mainFooter.classList.remove('hidden');
+                gameContainer.classList.remove('mobile-fullscreen');
+                mobileExitBtn.classList.add('hidden');
+                canvas.width = 800;
+                canvas.height = 450;
+            }
+        }
+
+        function resizeCanvasToViewport() {
+            // Keep internal coordinate system intact (800x450), CSS handles scaling smoothly
+            canvas.width = 800;
+            canvas.height = 450;
+        }
+
+        // Leaderboard logic
+        function loadLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('neonArcheryLeaderboard') || '[]');
+            // Sort high to low
+            leaderboard.sort((a, b) => b.score - a.score);
+            return leaderboard;
+        }
+
+        function renderLeaderboard() {
+            const list = loadLeaderboard();
+            leaderboardList.innerHTML = '';
+            
+            if (list.length === 0) {
+                leaderboardList.innerHTML = '<p class="text-slate-500 italic text-center py-2">No pilot records yet.</p>';
+            } else {
+                list.slice(0, 5).forEach((entry, idx) => {
+                    const row = document.createElement('div');
+                    row.className = `flex justify-between items-center py-1 border-b border-slate-900 last:border-0 ${idx === 0 ? 'text-cyan-300 font-bold' : 'text-slate-300'}`;
+                    row.innerHTML = `
+                        <span class="truncate pr-2">${idx + 1}. ${escapeHTML(entry.username)}</span>
+                        <span class="font-bold font-orbitron">${entry.score}</span>
+                    `;
+                    leaderboardList.appendChild(row);
+                });
+            }
+            leaderboardContainer.classList.remove('hidden');
+        }
+
+        function submitLocalScore() {
+            const enteredName = usernameInput.value.trim();
+            if (!enteredName) {
+                usernameInput.classList.add('border-rose-500');
+                return;
+            }
+            usernameInput.classList.remove('border-rose-500');
+            
+            // Save last used username
+            localStorage.setItem('neonArchery_username', enteredName);
+
+            const leaderboard = loadLeaderboard();
+            leaderboard.push({ username: enteredName, score: score, date: new Date().toISOString() });
+            
+            // Save top 50 scores total, display top 5
+            leaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('neonArcheryLeaderboard', JSON.stringify(leaderboard.slice(0, 50)));
+
+            submitFeedback.classList.remove('hidden');
+            submitScoreBtn.disabled = true;
+            submitScoreBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            renderLeaderboard();
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
         function initGamePageStats() {
             initGamePage('Neon Archery');
             highScore = getHighScore('Neon Archery');
             highScoreDisplay.textContent = highScore;
+            
+            // Pre-fill last username
+            const savedName = localStorage.getItem('neonArchery_username') || '';
+            usernameInput.value = savedName;
+
+            renderLeaderboard();
             drawInitialState();
         }
 
@@ -516,7 +706,15 @@
                 
                 gameActive = true;
                 updateUI();
+                
+                // Reset submit form state
+                submitFeedback.classList.add('hidden');
+                submitScoreBtn.disabled = false;
+                submitScoreBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                scoreSubmitContainer.classList.add('hidden');
+                
                 menuOverlay.classList.add('hidden');
+                updateScreenSizeState();
                 
                 lastTime = 0;
                 animationFrameId = requestAnimationFrame(gameLoop);
@@ -528,9 +726,17 @@
             cancelAnimationFrame(animationFrameId);
             
             timerBar.style.width = '0%';
+            updateScreenSizeState(); // Restore standard header/footer if on mobile
             menuOverlay.classList.remove('hidden');
             
             statusDisplay.innerHTML = `<span class="text-rose-500 font-bold block text-xl md:text-2xl mb-1 md:mb-2">MISSION OVER</span> Your Score: <span class="text-white font-bold text-lg md:text-xl">${score}</span>`;
+            
+            // Show Local Storage Submit Form
+            scoreSubmitContainer.classList.remove('hidden');
+            
+            // Re-render and show local leaderboard list
+            renderLeaderboard();
+
             startBtn.textContent = 'Retry Mission';
 
             // Push high score up to global GameJio system
@@ -544,7 +750,7 @@
             // Guard to make sure users do not accidentally trigger a shot when clicking menu buttons
             if (!gameActive) return;
             if (isStartButtonClicked(e)) return;
-            if (e.target.tagName === 'BUTTON' || e.target.closest('nav') || e.target.closest('.ui-layer')) return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('nav') || e.target.closest('.ui-layer') || e.target.closest('#score-submit-container')) return;
             shoot();
         };
 
@@ -552,6 +758,8 @@
         canvas.addEventListener('mousedown', triggerShot);
         canvas.addEventListener('touchstart', (e) => {
             if (isStartButtonClicked(e)) return;
+            // Prevent shooting when interacting with overlays
+            if (e.target.closest('#score-submit-container') || e.target.closest('#leaderboard-container')) return;
             e.preventDefault(); // Stop double trigger or viewport shifting on mobile tap
             triggerShot(e);
         }, { passive: false });
@@ -560,6 +768,7 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.code === 'Space') {
                 if (gameActive) {
+                    // Prevent page scrolling on spacebar when playing
                     e.preventDefault();
                     shoot();
                 }
@@ -569,6 +778,37 @@
         startBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             startGame();
+        });
+
+        // Exit fullscreen mobile view event
+        mobileExitBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            gameActive = false;
+            cancelAnimationFrame(animationFrameId);
+            updateScreenSizeState();
+            menuOverlay.classList.remove('hidden');
+            statusDisplay.innerHTML = `<span class="text-yellow-400 font-bold block text-lg mb-1">MISSION PAUSED</span> Resume whenever you are ready.`;
+            startBtn.textContent = 'Resume Mission';
+        });
+
+        // Submission click bindings
+        submitScoreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            submitLocalScore();
+        });
+
+        usernameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.stopPropagation();
+                submitLocalScore();
+            }
+        });
+
+        // Handle viewport adjustments dynamically on window resize
+        window.addEventListener('resize', () => {
+            if (gameActive) {
+                updateScreenSizeState();
+            }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
