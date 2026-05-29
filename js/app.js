@@ -35,14 +35,14 @@ if (document.body && (window.location.pathname === './index.html' || window.loca
 function protectGamePage() {
     if (!isUserLoggedIn()) {
         alert('Please login to play games!');
-        window.location.href = './login.html';
+        window.location.href = '../login.html';
     }
 }
 
 // Redirect to game page helper
 function redirectToGame(gamePath) {
     if (!isUserLoggedIn()) {
-        window.location.href = './login.html';
+        window.location.href = '../login.html';
     } else {
         window.location.href = gamePath;
     }
@@ -51,7 +51,7 @@ function redirectToGame(gamePath) {
 // Initialize game page with user info
 function initGamePage(gameName) {
     if (!isUserLoggedIn()) {
-        window.location.href = './login.html';
+        window.location.href = '../login.html';
         return;
     }
 
