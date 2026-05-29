@@ -26,7 +26,7 @@ function initIndexPage() {
 }
 
 // Call on page load for index.html
-if (document.body && (window.location.pathname === '/index.html' || window.location.pathname.endsWith('index.html') || window.location.pathname === '/')) {
+if (document.body && (window.location.pathname === './index.html' || window.location.pathname.endsWith('./index.html') || window.location.pathname === './')) {
     window.addEventListener('load', initIndexPage);
     initIndexPage();
 }
@@ -51,7 +51,7 @@ function redirectToGame(gamePath) {
 // Initialize game page with user info
 function initGamePage(gameName) {
     if (!isUserLoggedIn()) {
-        window.location.href = '/login.html';
+        window.location.href = './login.html';
         return;
     }
 
