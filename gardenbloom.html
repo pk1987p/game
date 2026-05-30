@@ -2,16 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GameJIO - Garden Bloom - Dream Garden Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
-     <!-- Google Analytics (gtag.js) -->
+    <!-- Google Analytics (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-537263577"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-537263577');
     </script>
     <!-- FontAwesome for icons -->
@@ -19,13 +18,10 @@
     <!-- Google Fonts for friendly, playful typography -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght=500;700&display=swap" rel="stylesheet">
 
-
-
     <style>
         .gradient-green-orange {
             background: linear-gradient(135deg, #a510b9 0%, #1640f9e3 100%);
         }
-
 
         body {
             font-family: 'Quicksand', sans-serif;
@@ -70,6 +66,7 @@
         .leaf-particle {
             position: absolute;
             pointer-events: none;
+            z-index: 45;
             animation: floatAway 1.2s forwards cubic-bezier(0.1, 0.8, 0.3, 1);
         }
         @keyframes floatAway {
@@ -100,14 +97,18 @@
             75% { left: 85%; top: 50%; transform: scale(1.1) rotate(-15deg); }
             100% { left: 110%; top: 30%; transform: scale(0.8) rotate(15deg); }
         }
-    </style>
 
-    
+        /* Stop system zoom/scrolling while dragging matches on mobile viewports */
+        .board-touch-contain {
+            touch-action: none;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md sticky top-0 z-50 w-full">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
             <a href="./index.html" class="flex items-center gap-2">
                 <span class="text-2xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮</span>
                 <div class="flex">
@@ -124,10 +125,10 @@
                     </button>
                 </div>
                 <div id="authMenu" class="flex gap-3">
-                    <a href="./login.html" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm">
+                    <a href="./login.html" class="px-3 py-1.5 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xs sm:text-sm">
                         Login
                     </a>
-                    <a href="./signup.html" class="px-4 py-2 border-2 border-orange-500 text-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition-colors text-sm">
+                    <a href="./signup.html" class="px-3 py-1.5 border-2 border-orange-500 text-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition-colors text-xs sm:text-sm">
                         Sign Up
                     </a>
                 </div>
@@ -135,278 +136,282 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-<body class="min-height-screen flex flex-col justify-between max-w-md mx-auto relative shadow-2xl bg-[#f0fff4]">
+    <!-- Main Responsive Play Frame Wrapper -->
+    <main class="flex-grow flex items-center justify-center p-0 sm:p-4 w-full">
+        <div class="w-full max-w-md bg-[#f0fff4] shadow-2xl relative flex flex-col overflow-hidden min-h-[calc(100vh-60px)] sm:min-h-[800px] sm:rounded-[32px] sm:border-4 sm:border-emerald-500/30">
+            
+            <!-- Decorative Butterfly -->
+            <div class="butterfly text-2xl">🦋</div>
 
-    <!-- Decorative Butterfly -->
-    <div class="butterfly text-2xl">🦋</div>
+            <!-- MAIN APP SCREENS -->
+            <div class="flex-grow flex flex-col w-full h-full pb-20 overflow-y-auto">
 
-    <!-- MAIN APP SCREEN WRAPPER -->
-    <div class="flex-grow flex flex-col w-full h-full pb-20 overflow-y-auto">
+                <!-- SCREEN: HOME / SPLASH -->
+                <div id="screen-home" class="flex flex-col items-center justify-between p-6 flex-grow text-center">
+                    <div class="my-auto space-y-6 w-full">
+                        <!-- Mascot & Logo -->
+                        <div class="relative inline-block mt-4">
+                            <div class="w-32 h-32 rounded-full border-4 border-white bg-green-200 overflow-hidden mx-auto shadow-lg flex items-center justify-center">
+                                <!-- Cute Lucy mascot using custom SVG -->
+                                <svg viewBox="0 0 100 100" class="w-28 h-28">
+                                    <circle cx="50" cy="45" r="25" fill="#fbcfe8" />
+                                    <circle cx="38" cy="40" r="3" fill="#1e293b" />
+                                    <circle cx="62" cy="40" r="3" fill="#1e293b" />
+                                    <path d="M 45 52 Q 50 56 55 52" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                    <path d="M 30 30 Q 50 15 70 30" stroke="#f43f5e" stroke-width="12" fill="none" stroke-linecap="round" />
+                                    <path d="M 22 45 Q 15 50 25 55" stroke="#fbcfe8" stroke-width="4" fill="none" />
+                                    <path d="M 78 45 Q 85 50 75 55" stroke="#fbcfe8" stroke-width="4" fill="none" />
+                                    <!-- Hair buns -->
+                                    <circle cx="28" cy="24" r="10" fill="#f43f5e" />
+                                    <circle cx="72" cy="24" r="10" fill="#f43f5e" />
+                                    <path d="M 48 20 L 52 20 L 50 10 Z" fill="#fbbf24" /> <!-- Daisy in hair -->
+                                </svg>
+                            </div>
+                            <div class="absolute -bottom-2 right-4 bg-yellow-400 text-white font-bold text-xs py-1 px-3 rounded-full shadow border border-white">
+                                Lucy
+                            </div>
+                        </div>
 
-        <!-- SCREEN: HOME / SPLASH -->
-        <div id="screen-home" class="flex flex-col items-center justify-between p-6 flex-grow text-center">
-            <div class="my-auto space-y-6">
-                <!-- Mascot & Logo -->
-                <div class="relative inline-block">
-                    <div class="w-32 h-32 rounded-full border-4 border-white bg-green-200 overflow-hidden mx-auto shadow-lg flex items-center justify-center">
-                        <!-- Cute Lucy mascot using custom SVG -->
-                        <svg viewBox="0 0 100 100" class="w-28 h-28">
-                            <circle cx="50" cy="45" r="25" fill="#fbcfe8" />
-                            <circle cx="38" cy="40" r="3" fill="#1e293b" />
-                            <circle cx="62" cy="40" r="3" fill="#1e293b" />
-                            <path d="M 45 52 Q 50 56 55 52" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/>
-                            <path d="M 30 30 Q 50 15 70 30" stroke="#f43f5e" stroke-width="12" fill="none" stroke-linecap="round" />
-                            <path d="M 22 45 Q 15 50 25 55" stroke="#fbcfe8" stroke-width="4" fill="none" />
-                            <path d="M 78 45 Q 85 50 75 55" stroke="#fbcfe8" stroke-width="4" fill="none" />
-                            <!-- Hair buns -->
-                            <circle cx="28" cy="24" r="10" fill="#f43f5e" />
-                            <circle cx="72" cy="24" r="10" fill="#f43f5e" />
-                            <path d="M 48 20 L 52 20 L 50 10 Z" fill="#fbbf24" /> <!-- Daisy in hair -->
+                        <div class="space-y-2">
+                            <h1 class="text-4xl heading-font text-pink-600 drop-shadow-md">GARDEN BLOOM</h1>
+                            <p class="text-emerald-700 font-bold text-lg">Blossom Blast & Dream Garden Design</p>
+                        </div>
+                    </div>
+
+                    <div class="w-full space-y-4 mb-8">
+                        <button onclick="changeScreen('screen-levels')" class="w-full bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold text-xl py-4 rounded-3xl shadow-lg hover:from-pink-600 hover:to-rose-700 transition transform hover:scale-105 active:scale-95 heading-font border-b-4 border-rose-800">
+                            <i class="fa-solid fa-play mr-2"></i> PLAY ADVENTURE
+                        </button>
+                        <button onclick="changeScreen('screen-garden')" class="w-full bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-800 font-bold text-lg py-3 rounded-3xl shadow-md hover:from-amber-500 hover:to-yellow-600 transition transform hover:scale-105 active:scale-95 heading-font border-b-4 border-amber-700">
+                            <i class="fa-solid fa-seedling mr-2 text-emerald-700"></i> MY DREAM GARDEN
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCREEN: LEVEL SELECT -->
+                <div id="screen-levels" class="hidden p-4 space-y-6 flex-grow">
+                    <div class="flex justify-between items-center bg-white/80 backdrop-blur rounded-2xl p-3 shadow-sm">
+                        <button onclick="changeScreen('screen-home')" class="w-10 h-10 bg-pink-100 hover:bg-pink-200 text-pink-600 rounded-full flex items-center justify-center transition">
+                            <i class="fa-solid fa-arrow-left text-lg"></i>
+                        </button>
+                        <span class="heading-font text-xl text-emerald-800">Adventure Map</span>
+                        <div class="flex items-center space-x-1 bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-300">
+                            <i class="fa-solid fa-star text-amber-500"></i>
+                            <span id="map-star-count">0</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4" id="levels-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- SCREEN: GAMEPLAY -->
+                <div id="screen-game" class="hidden p-4 flex-grow flex flex-col justify-between space-y-4">
+                    <!-- Game Top bar (Score, Stars, Target, and Pause/Return) -->
+                    <div class="bg-white/95 rounded-2xl p-3 shadow-md flex items-center justify-between space-x-2">
+                        <button onclick="changeScreen('screen-levels')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200">
+                            <i class="fa-solid fa-chevron-left text-slate-600"></i>
+                        </button>
+                        
+                        <!-- Target Objectives -->
+                        <div class="flex space-x-2 items-center" id="level-objectives-panel">
+                            <!-- Dynamic goals populated here -->
+                        </div>
+
+                        <!-- Moves Left -->
+                        <div class="bg-gradient-to-b from-pink-500 to-rose-600 text-white rounded-xl px-4 py-1 text-center shadow-inner">
+                            <span class="text-[10px] block font-bold tracking-wider uppercase opacity-85">Moves</span>
+                            <span id="game-moves" class="text-xl font-bold heading-font">30</span>
+                        </div>
+                    </div>
+
+                    <!-- Score and Stars Progress Bar -->
+                    <div class="bg-white/90 rounded-xl p-2 shadow-sm flex items-center justify-between space-x-3">
+                        <div class="text-sm font-bold text-emerald-800">
+                            Score: <span id="game-score" class="text-emerald-600 font-extrabold text-base">0</span>
+                        </div>
+                        <div class="flex-grow bg-slate-200 rounded-full h-3 overflow-hidden relative border border-slate-300">
+                            <div id="score-progress" class="bg-gradient-to-r from-amber-400 to-yellow-500 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                        <div class="flex items-center text-amber-600 font-bold text-xs space-x-1">
+                            <i class="fa-solid fa-star"></i>
+                            <span id="game-stars-earned">0</span>/3
+                        </div>
+                    </div>
+
+                    <!-- Match-3 Matrix Board Frame -->
+                    <div class="bg-gradient-to-br from-emerald-400 via-green-300 to-emerald-500 p-2 sm:p-3 rounded-3xl shadow-xl border-4 border-white/80 relative">
+                        <!-- Board Grid -->
+                        <div id="game-board" class="grid grid-cols-8 grid-rows-8 gap-1 bg-emerald-950/20 rounded-2xl p-1 relative overflow-hidden board-touch-contain" style="aspect-ratio: 1/1;">
+                            <!-- Dynamically created game cells & tiles -->
+                        </div>
+                    </div>
+
+                    <!-- Helpful Power-ups Tray -->
+                    <div class="bg-emerald-50 rounded-2xl p-2 border border-emerald-200 flex justify-around items-center">
+                        <button onclick="activatePowerup('hammer')" id="btn-powerup-hammer" class="flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border border-emerald-100 hover:bg-amber-50 transition w-16 relative">
+                            <div class="text-lg text-amber-500"><i class="fa-solid fa-hammer"></i></div>
+                            <span class="text-[9px] font-bold text-slate-600 mt-1">Hammer</span>
+                            <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 rounded-full">1</span>
+                        </button>
+                        <button onclick="activatePowerup('shuffler')" id="btn-powerup-shuffle" class="flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border border-emerald-100 hover:bg-amber-50 transition w-16 relative">
+                            <div class="text-lg text-sky-500"><i class="fa-solid fa-shuffle"></i></div>
+                            <span class="text-[9px] font-bold text-slate-600 mt-1">Shuffle</span>
+                            <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 rounded-full">1</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCREEN: GARDEN DECORATION -->
+                <div id="screen-garden" class="hidden p-4 space-y-4 flex-grow flex flex-col justify-between">
+                    <div class="flex justify-between items-center bg-white/80 backdrop-blur rounded-2xl p-3 shadow-sm">
+                        <button onclick="changeScreen('screen-home')" class="w-10 h-10 bg-amber-100 hover:bg-amber-200 text-amber-600 rounded-full flex items-center justify-center transition">
+                            <i class="fa-solid fa-house"></i>
+                        </button>
+                        <span class="heading-font text-xl text-emerald-800">My Dream Garden</span>
+                        <div class="flex items-center space-x-1 bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-300">
+                            <i class="fa-solid fa-star text-amber-500"></i>
+                            <span id="garden-star-count">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Garden Live View Render Canvas -->
+                    <div class="relative w-full aspect-[4/3] bg-gradient-to-b from-sky-300 via-sky-200 to-emerald-400 rounded-2xl overflow-hidden shadow-inner border-2 border-white">
+                        <!-- Sky details -->
+                        <div class="absolute top-4 left-6 text-white/50 text-xl"><i class="fa-solid fa-cloud"></i></div>
+                        <div class="absolute top-8 right-12 text-white/40 text-2xl"><i class="fa-solid fa-cloud"></i></div>
+                        <!-- Sun -->
+                        <div class="absolute top-3 right-4 w-10 h-10 bg-yellow-300 rounded-full blur-[2px] opacity-80"></div>
+
+                        <!-- Green meadow backdrop -->
+                        <div class="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-emerald-500 to-emerald-400 border-t-4 border-emerald-300"></div>
+
+                        <!-- SVG PLOTS (Upgradable assets) -->
+                        <!-- 1. Central Fountain -->
+                        <div id="garden-plot-fountain" class="absolute left-1/2 bottom-6 -translate-x-1/2 w-28 h-24 flex items-end justify-center transition-all duration-500 hover:scale-105">
+                            <!-- Default State -->
+                            <div class="text-center text-xs bg-black/30 backdrop-blur text-white px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-600">
+                                🔨 Fountain
+                            </div>
+                        </div>
+
+                        <!-- 2. Floral Trellis (Background Left) -->
+                        <div id="garden-plot-trellis" class="absolute left-6 bottom-16 w-20 h-24 flex items-end justify-center transition-all duration-500 hover:scale-105">
+                            <div class="text-center text-xs bg-black/30 backdrop-blur text-white px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-600">
+                                🔨 Trellis
+                            </div>
+                        </div>
+
+                        <!-- 3. Cozy Canopy Swing (Right Side) -->
+                        <div id="garden-plot-swing" class="absolute right-4 bottom-10 w-24 h-24 flex items-end justify-center transition-all duration-500 hover:scale-105">
+                            <div class="text-center text-xs bg-black/30 backdrop-blur text-white px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-600">
+                                🔨 Swing
+                            </div>
+                        </div>
+
+                        <!-- Beautiful Butterflies in the Garden -->
+                        <div class="absolute bottom-16 left-12 text-sm animate-bounce duration-1000">🦋</div>
+                        <div class="absolute bottom-8 right-16 text-sm animate-bounce duration-[1500ms]">🦋</div>
+                    </div>
+
+                    <!-- Upgrades List -->
+                    <div class="bg-white/95 rounded-2xl p-4 shadow-md flex-grow overflow-y-auto space-y-3 max-h-56">
+                        <h3 class="font-bold text-emerald-800 border-b pb-1 text-sm uppercase tracking-wide">Garden Blueprints</h3>
+                        <div class="space-y-2" id="garden-upgrades-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PERSISTENT FOOTER NAVIGATION -->
+            <nav class="absolute bottom-0 left-0 right-0 bg-white/95 border-t border-emerald-100 px-6 py-2 flex justify-around items-center rounded-t-3xl shadow-lg z-30">
+                <button onclick="changeScreen('screen-home')" class="nav-item flex flex-col items-center group transition">
+                    <div id="nav-icon-home" class="w-10 h-10 rounded-full flex items-center justify-center bg-pink-100 text-pink-500 transition group-hover:scale-110">
+                        <i class="fa-solid fa-house"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-pink-500 mt-1">Home</span>
+                </button>
+                <button onclick="changeScreen('screen-levels')" class="nav-item flex flex-col items-center group transition">
+                    <div id="nav-icon-levels" class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-500 transition group-hover:scale-110">
+                        <i class="fa-solid fa-map"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-500 mt-1">Levels</span>
+                </button>
+                <button onclick="changeScreen('screen-garden')" class="nav-item flex flex-col items-center group transition">
+                    <div id="nav-icon-garden" class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-500 transition group-hover:scale-110">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-500 mt-1">Garden</span>
+                </button>
+            </nav>
+
+            <!-- OVERLAYS: MODAL BOXES -->
+            <!-- Level Goal Intro Modal -->
+            <div id="modal-level-intro" class="fixed sm:absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-6 opacity-0 pointer-events-none transition-all duration-300">
+                <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center transform scale-90 transition-transform duration-300 relative border-4 border-emerald-400">
+                    <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-emerald-100 border-4 border-white flex items-center justify-center shadow-lg">
+                        <svg viewBox="0 0 100 100" class="w-16 h-16">
+                            <path d="M50,15 C40,40 15,50 15,50 C15,50 40,60 50,85 C60,60 85,50 85,50 C85,50 60,40 50,15 Z" fill="#f43f5e"/>
                         </svg>
                     </div>
-                    <div class="absolute -bottom-2 right-4 bg-yellow-400 text-white font-bold text-xs py-1 px-3 rounded-full shadow border border-white">
-                        Lucy
+                    <h2 id="intro-level-title" class="heading-font text-2xl text-emerald-800 mt-8 mb-2">Level 1</h2>
+                    <p class="text-slate-500 font-bold mb-4">Lucy's Garden Objectives:</p>
+                    
+                    <div class="bg-emerald-50 rounded-2xl p-4 flex justify-center items-center space-x-6 mb-6" id="intro-goals-container">
+                        <!-- Objectives here -->
+                    </div>
+
+                    <button onclick="startActiveLevel()" class="w-full bg-gradient-to-r from-emerald-400 to-green-500 text-white font-bold py-3.5 rounded-2xl shadow-md hover:from-emerald-500 hover:to-green-600 transition transform active:scale-95 heading-font">
+                        LET'S BLOSSOM!
+                    </button>
+                </div>
+            </div>
+
+            <!-- Win/Loss Game Over Modal -->
+            <div id="modal-game-result" class="fixed sm:absolute inset-0 bg-black/70 z-50 flex items-center justify-center p-6 opacity-0 pointer-events-none transition-all duration-300">
+                <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center transform scale-90 transition-transform duration-300 relative border-4 border-pink-400">
+                    <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full border-4 border-white flex items-center justify-center shadow-lg" id="result-icon-container">
+                        <!-- Win or lose icon dynamically injected -->
+                    </div>
+                    
+                    <h2 id="result-title" class="heading-font text-3xl text-pink-600 mt-8 mb-1">Blossom Victory!</h2>
+                    <p id="result-subtitle" class="text-emerald-700 font-bold mb-4">Amazing flower combos!</p>
+                    
+                    <!-- Stars Display -->
+                    <div class="flex justify-center space-x-3 text-3xl text-amber-400 mb-6" id="result-stars">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+
+                    <!-- Stats Table -->
+                    <div class="bg-slate-50 rounded-2xl p-3 mb-6 space-y-1 text-sm text-slate-600 font-bold">
+                        <div class="flex justify-between">
+                            <span>Score:</span>
+                            <span id="result-score" class="text-emerald-600">1,240</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Stars Earned:</span>
+                            <span id="result-stars-count" class="text-amber-500">+3 Stars</span>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-3">
+                        <button onclick="changeScreen('screen-levels')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl transition">
+                            MAP
+                        </button>
+                        <button id="result-action-btn" class="flex-2 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold py-3 px-6 rounded-2xl shadow hover:from-pink-600 hover:to-rose-700 transition transform active:scale-95 heading-font">
+                            NEXT LEVEL
+                        </button>
                     </div>
                 </div>
-
-                <div class="space-y-2">
-                    <h1 class="text-4xl heading-font text-pink-600 drop-shadow-md">GARDEN BLOOM</h1>
-                    <p class="text-emerald-700 font-bold text-lg">Blossom Blast & Dream Garden Design</p>
-                </div>
             </div>
 
-            <div class="w-full space-y-4 mb-8">
-                <button onclick="changeScreen('screen-levels')" class="w-full bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold text-xl py-4 rounded-3xl shadow-lg hover:from-pink-600 hover:to-rose-700 transition transform hover:scale-105 active:scale-95 heading-font border-b-4 border-rose-800">
-                    <i class="fa-solid fa-play mr-2"></i> PLAY ADVENTURE
-                </button>
-                <button onclick="changeScreen('screen-garden')" class="w-full bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-800 font-bold text-lg py-3 rounded-3xl shadow-md hover:from-amber-500 hover:to-yellow-600 transition transform hover:scale-105 active:scale-95 heading-font border-b-4 border-amber-700">
-                    <i class="fa-solid fa-seedling mr-2 text-emerald-700"></i> MY DREAM GARDEN
-                </button>
-            </div>
         </div>
-
-        <!-- SCREEN: LEVEL SELECT -->
-        <div id="screen-levels" class="hidden p-4 space-y-6 flex-grow">
-            <div class="flex justify-between items-center bg-white/80 backdrop-blur rounded-2xl p-3 shadow-sm">
-                <button onclick="changeScreen('screen-home')" class="w-10 h-10 bg-pink-100 hover:bg-pink-200 text-pink-600 rounded-full flex items-center justify-center transition">
-                    <i class="fa-solid fa-arrow-left text-lg"></i>
-                </button>
-                <span class="heading-font text-xl text-emerald-800">Adventure Map</span>
-                <div class="flex items-center space-x-1 bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-300">
-                    <i class="fa-solid fa-star text-amber-500"></i>
-                    <span id="map-star-count">0</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4" id="levels-container">
-                <!-- Populated by JS -->
-            </div>
-        </div>
-
-        <!-- SCREEN: GAMEPLAY -->
-        <div id="screen-game" class="hidden p-4 flex-grow flex flex-col justify-between space-y-4">
-            <!-- Game Top bar (Score, Stars, Target, and Pause/Return) -->
-            <div class="bg-white/95 rounded-2xl p-3 shadow-md flex items-center justify-between space-x-2">
-                <button onclick="changeScreen('screen-levels')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200">
-                    <i class="fa-solid fa-chevron-left text-slate-600"></i>
-                </button>
-                
-                <!-- Target Objectives -->
-                <div class="flex space-x-2 items-center" id="level-objectives-panel">
-                    <!-- Dynamic goals populated here -->
-                </div>
-
-                <!-- Moves Left -->
-                <div class="bg-gradient-to-b from-pink-500 to-rose-600 text-white rounded-xl px-4 py-1 text-center shadow-inner">
-                    <span class="text-[10px] block font-bold tracking-wider uppercase opacity-85">Moves</span>
-                    <span id="game-moves" class="text-xl font-bold heading-font">30</span>
-                </div>
-            </div>
-
-            <!-- Score and Stars Progress Bar -->
-            <div class="bg-white/90 rounded-xl p-2 shadow-sm flex items-center justify-between space-x-3">
-                <div class="text-sm font-bold text-emerald-800">
-                    Score: <span id="game-score" class="text-emerald-600 font-extrabold text-base">0</span>
-                </div>
-                <div class="flex-grow bg-slate-200 rounded-full h-3 overflow-hidden relative border border-slate-300">
-                    <div id="score-progress" class="bg-gradient-to-r from-amber-400 to-yellow-500 h-full w-0 transition-all duration-300"></div>
-                </div>
-                <div class="flex items-center text-amber-600 font-bold text-xs space-x-1">
-                    <i class="fa-solid fa-star"></i>
-                    <span id="game-stars-earned">0</span>/3
-                </div>
-            </div>
-
-            <!-- Match-3 Matrix Board Frame -->
-            <div class="bg-gradient-to-br from-emerald-400 via-green-300 to-emerald-500 p-3 rounded-3xl shadow-xl border-4 border-white/80 relative">
-                <!-- Board Grid -->
-                <div id="game-board" class="grid grid-cols-8 grid-rows-8 gap-1.5 bg-emerald-950/20 rounded-2xl p-1 relative overflow-hidden" style="aspect-ratio: 1/1;">
-                    <!-- Dynamically created game cells & tiles -->
-                </div>
-            </div>
-
-            <!-- Helpful Power-ups Tray -->
-            <div class="bg-emerald-50 rounded-2xl p-2 border border-emerald-200 flex justify-around items-center">
-                <button onclick="activatePowerup('hammer')" id="btn-powerup-hammer" class="flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border border-emerald-100 hover:bg-amber-50 transition w-16 relative">
-                    <div class="text-lg text-amber-500"><i class="fa-solid fa-hammer"></i></div>
-                    <span class="text-[9px] font-bold text-slate-600 mt-1">Hammer</span>
-                    <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 rounded-full">1</span>
-                </button>
-                <button onclick="activatePowerup('shuffler')" id="btn-powerup-shuffle" class="flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border border-emerald-100 hover:bg-amber-50 transition w-16 relative">
-                    <div class="text-lg text-sky-500"><i class="fa-solid fa-shuffle"></i></div>
-                    <span class="text-[9px] font-bold text-slate-600 mt-1">Shuffle</span>
-                    <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 rounded-full">1</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- SCREEN: GARDEN DECORATION -->
-        <div id="screen-garden" class="hidden p-4 space-y-4 flex-grow flex flex-col justify-between">
-            <div class="flex justify-between items-center bg-white/80 backdrop-blur rounded-2xl p-3 shadow-sm">
-                <button onclick="changeScreen('screen-home')" class="w-10 h-10 bg-amber-100 hover:bg-amber-200 text-amber-600 rounded-full flex items-center justify-center transition">
-                    <i class="fa-solid fa-house"></i>
-                </button>
-                <span class="heading-font text-xl text-emerald-800">My Dream Garden</span>
-                <div class="flex items-center space-x-1 bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-300">
-                    <i class="fa-solid fa-star text-amber-500"></i>
-                    <span id="garden-star-count">0</span>
-                </div>
-            </div>
-
-            <!-- Garden Live View Render Canvas -->
-            <div class="relative w-full aspect-[4/3] bg-gradient-to-b from-sky-300 via-sky-200 to-emerald-400 rounded-2xl overflow-hidden shadow-inner border-2 border-white">
-                <!-- Sky details -->
-                <div class="absolute top-4 left-6 text-white/50 text-xl"><i class="fa-solid fa-cloud"></i></div>
-                <div class="absolute top-8 right-12 text-white/40 text-2xl"><i class="fa-solid fa-cloud"></i></div>
-                <!-- Sun -->
-                <div class="absolute top-3 right-4 w-10 h-10 bg-yellow-300 rounded-full blur-[2px] opacity-80"></div>
-
-                <!-- Green meadow backdrop -->
-                <div class="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-emerald-500 to-emerald-400 border-t-4 border-emerald-300"></div>
-
-                <!-- SVG PLOTS (Upgradable assets) -->
-                <!-- 1. Central Fountain -->
-                <div id="garden-plot-fountain" class="absolute left-1/2 bottom-6 -translate-x-1/2 w-28 h-24 flex items-end justify-center transition-all duration-500 hover:scale-105">
-                    <!-- Default State -->
-                    <div class="text-center text-xs bg-black/30 backdrop-blur text-white px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-600">
-                        🔨 Fountain
-                    </div>
-                </div>
-
-                <!-- 2. Floral Trellis (Background Left) -->
-                <div id="garden-plot-trellis" class="absolute left-6 bottom-16 w-20 h-24 flex items-end justify-center transition-all duration-500 hover:scale-105">
-                    <div class="text-center text-xs bg-black/30 backdrop-blur text-white px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-600">
-                        🔨 Trellis
-                    </div>
-                </div>
-
-                <!-- 3. Cozy Canopy Swing (Right Side) -->
-                <div id="garden-plot-swing" class="absolute right-4 bottom-10 w-24 h-24 flex items-end justify-center transition-all duration-500 hover:scale-105">
-                    <div class="text-center text-xs bg-black/30 backdrop-blur text-white px-2 py-1 rounded-full cursor-pointer hover:bg-emerald-600">
-                        🔨 Swing
-                    </div>
-                </div>
-
-                <!-- Beautiful Butterflies in the Garden -->
-                <div class="absolute bottom-16 left-12 text-sm animate-bounce duration-1000">🦋</div>
-                <div class="absolute bottom-8 right-16 text-sm animate-bounce duration-[1500ms]">🦋</div>
-            </div>
-
-            <!-- Upgrades List -->
-            <div class="bg-white/95 rounded-2xl p-4 shadow-md flex-grow overflow-y-auto space-y-3 max-h-56">
-                <h3 class="font-bold text-emerald-800 border-b pb-1 text-sm uppercase tracking-wide">Garden Blueprints</h3>
-                <div class="space-y-2" id="garden-upgrades-list">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- PERSISTENT FOOTER NAVIGATION -->
-    <nav class="absolute bottom-0 left-0 right-0 bg-white/95 border-t border-emerald-100 px-6 py-2 flex justify-around items-center rounded-t-3xl shadow-lg z-30">
-        <button onclick="changeScreen('screen-home')" class="nav-item flex flex-col items-center group transition">
-            <div id="nav-icon-home" class="w-10 h-10 rounded-full flex items-center justify-center bg-pink-100 text-pink-500 transition group-hover:scale-110">
-                <i class="fa-solid fa-house"></i>
-            </div>
-            <span class="text-[10px] font-bold text-pink-500 mt-1">Home</span>
-        </button>
-        <button onclick="changeScreen('screen-levels')" class="nav-item flex flex-col items-center group transition">
-            <div id="nav-icon-levels" class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-500 transition group-hover:scale-110">
-                <i class="fa-solid fa-map"></i>
-            </div>
-            <span class="text-[10px] font-bold text-slate-500 mt-1">Levels</span>
-        </button>
-        <button onclick="changeScreen('screen-garden')" class="nav-item flex flex-col items-center group transition">
-            <div id="nav-icon-garden" class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-500 transition group-hover:scale-110">
-                <i class="fa-solid fa-seedling"></i>
-            </div>
-            <span class="text-[10px] font-bold text-slate-500 mt-1">Garden</span>
-        </button>
-    </nav>
-
-    <!-- OVERLAYS: MODAL BOXES -->
-    <!-- Level Goal Intro Modal -->
-    <div id="modal-level-intro" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center transform scale-90 transition-transform duration-300 relative border-4 border-emerald-400">
-            <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-emerald-100 border-4 border-white flex items-center justify-center shadow-lg">
-                <svg viewBox="0 0 100 100" class="w-16 h-16">
-                    <path d="M50,15 C40,40 15,50 15,50 C15,50 40,60 50,85 C60,60 85,50 85,50 C85,50 60,40 50,15 Z" fill="#f43f5e"/>
-                </svg>
-            </div>
-            <h2 id="intro-level-title" class="heading-font text-2xl text-emerald-800 mt-8 mb-2">Level 1</h2>
-            <p class="text-slate-500 font-bold mb-4">Lucy's Garden Objectives:</p>
-            
-            <div class="bg-emerald-50 rounded-2xl p-4 flex justify-center items-center space-x-6 mb-6" id="intro-goals-container">
-                <!-- Objectives here -->
-            </div>
-
-            <button onclick="startActiveLevel()" class="w-full bg-gradient-to-r from-emerald-400 to-green-500 text-white font-bold py-3.5 rounded-2xl shadow-md hover:from-emerald-500 hover:to-green-600 transition transform active:scale-95 heading-font">
-                LET'S BLOSSOM!
-            </button>
-        </div>
-    </div>
-
-    <!-- Win/Loss Game Over Modal -->
-    <div id="modal-game-result" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center transform scale-90 transition-transform duration-300 relative border-4 border-pink-400">
-            <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full border-4 border-white flex items-center justify-center shadow-lg" id="result-icon-container">
-                <!-- Win or lose icon dynamically injected -->
-            </div>
-            
-            <h2 id="result-title" class="heading-font text-3xl text-pink-600 mt-8 mb-1">Blossom Victory!</h2>
-            <p id="result-subtitle" class="text-emerald-700 font-bold mb-4">Amazing flower combos!</p>
-            
-            <!-- Stars Display -->
-            <div class="flex justify-center space-x-3 text-3xl text-amber-400 mb-6" id="result-stars">
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-            </div>
-
-            <!-- Stats Table -->
-            <div class="bg-slate-50 rounded-2xl p-3 mb-6 space-y-1 text-sm text-slate-600 font-bold">
-                <div class="flex justify-between">
-                    <span>Score:</span>
-                    <span id="result-score" class="text-emerald-600">1,240</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Stars Earned:</span>
-                    <span id="result-stars-count" class="text-amber-500">+3 Stars</span>
-                </div>
-            </div>
-
-            <div class="flex space-x-3">
-                <button onclick="changeScreen('screen-levels')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl transition">
-                    MAP
-                </button>
-                <button id="result-action-btn" class="flex-2 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold py-3 px-6 rounded-2xl shadow hover:from-pink-600 hover:to-rose-700 transition transform active:scale-95 heading-font">
-                    NEXT LEVEL
-                </button>
-            </div>
-        </div>
-    </div>
+    </main>
 
     <!-- Audio Synthesis & Logic Engine -->
     <script>
@@ -748,6 +753,9 @@
             } else if (screenId === 'screen-levels') {
                 document.getElementById('nav-icon-levels').className = 'w-10 h-10 rounded-full flex items-center justify-center bg-pink-100 text-pink-500 transition';
                 renderLevelsMap();
+            } else if (screenId === 'screen-game') {
+                // Remove leftover selection rings
+                boardState.selectedTile = null;
             } else if (screenId === 'screen-garden') {
                 document.getElementById('nav-icon-garden').className = 'w-10 h-10 rounded-full flex items-center justify-center bg-pink-100 text-pink-500 transition';
                 renderGardenCanvas();
@@ -1559,8 +1567,10 @@
         }
 
         function updateStarDisplays() {
-            document.getElementById('map-star-count').textContent = appState.stars;
-            document.getElementById('garden-star-count').textContent = appState.stars;
+            const mapStar = document.getElementById('map-star-count');
+            const gardenStar = document.getElementById('garden-star-count');
+            if (mapStar) mapStar.textContent = appState.stars;
+            if (gardenStar) gardenStar.textContent = appState.stars;
         }
 
         const delay = ms => new Promise(res => setTimeout(res, ms));
