@@ -55,13 +55,28 @@
             100% { background-position: 0% 50%; }
         }
     </style>
+     <!-- Google Analytics (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-537263577"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-537263577');
+    </script>
+
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
     <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
             <a href="./index.html" class="flex items-center gap-2">
-                <span class="text-2xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮 GameJio</span>
+                <span class="text-2xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮</span>
+                <div class="flex">
+                    <span class="text-2xl font-bold text-green-500 tracking-tight">Game</span>
+                    <span class="text-2xl font-bold text-orange-500 tracking-tight">Jio</span>
+                    <span class="text-2xl font-bold text-black-500 tracking-tight">.Com</span>
+                </div>
             </a>
             <div class="flex items-center gap-4">
                 <div id="userMenu" class="hidden flex items-center gap-4">
@@ -97,6 +112,25 @@
         </h2>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Game Card 1: IPL -->
+            <a href="./cricket2.html"
+                class="game-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <img src="./assets/ipl.png" alt="Cricket Stadium" class="w-full h-auto rounded-2xl shadow-lg border border-slate-800" />
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Indian Players League</h3>
+                    <p class="text-gray-600 mb-4">Score and Share with Friends!</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-500">⭐ 4.8 (2450 plays)</span>
+                        <span
+                            class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">Easy</span>
+                    </div>
+                    <div class="play-btn">
+                        <span>▶</span> Play Now
+                    </div>
+                </div>
+            </a>
+            
+            
             <!-- Game Card 1: Snake -->
             <a href="./games/snake.html" class="game-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                 <div class="bg-gradient-to-br from-green-400 to-green-600 h-40 flex items-center justify-center text-5xl">
