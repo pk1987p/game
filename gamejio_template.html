@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameJio - Play HTML5 Games</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-green-orange {
+            background: linear-gradient(135deg, #a510b9 0%, #1640f9e3 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="./index.html" class="flex items-center gap-2">
+                <span class="text-2xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮 GameJio</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <div id="userMenu" class="hidden flex items-center gap-4">
+                    <span id="userName" class="text-sm font-medium text-gray-700"></span>
+                    <button id="logoutBtn" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm">
+                        Logout
+                    </button>
+                </div>
+                <div id="authMenu" class="flex gap-3">
+                    <a href="./login.html" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm">
+                        Login
+                    </a>
+                    <a href="./signup.html" class="px-4 py-2 border-2 border-orange-500 text-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition-colors text-sm">
+                        Sign Up
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-green-orange text-white py-8 md:py-12 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Play Amazing HTML5 Games</h1>
+            <p class="text-lg md:text-xl opacity-90">Choose from our collection of classic games. No downloads required!</p>
+        </div>
+    </section>
+</body>
+</html>
