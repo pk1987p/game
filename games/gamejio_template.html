@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameJio - Play HTML5 Games</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-green-orange {
+            background: linear-gradient(135deg, #a510b9 0%, #1640f9e3 100%);
+        }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      touch-action: manipulation;
+    }
+    .retro-font {
+      font-family: 'Press Start 2P', monospace;
+    }
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    /* Satisfying custom spring animations for runs/wickets overlays */
+    .scale-pop {
+      animation: scalePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes scalePop {
+      0% { transform: scale(0.4); opacity: 0; }
+      70% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .shake-pop {
+      animation: shakePop 0.6s ease-in-out forwards;
+    }
+    @keyframes shakePop {
+      0% { transform: scale(0.4) rotate(-5deg); opacity: 0; }
+      15% { transform: scale(1) rotate(5deg); }
+      30% { transform: scale(1) rotate(-5deg); }
+      45% { transform: scale(1) rotate(3deg); }
+      60% { transform: scale(1) rotate(-3deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col justify-between overflow-hidden select-none">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="./index.html" class="flex items-center gap-2">
+                <span class="text-2xl font-bold gradient-green-orange bg-clip-text text-transparent">🎮 GameJio</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <div id="userMenu" class="hidden flex items-center gap-4">
+                    <span id="userName" class="text-sm font-medium text-gray-700"></span>
+                    <button id="logoutBtn" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm">
+                        Logout
+                    </button>
+                </div>
+                <div id="authMenu" class="flex gap-3">
+                    <a href="./login.html" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm">
+                        Login
+                    </a>
+                    <a href="./signup.html" class="px-4 py-2 border-2 border-orange-500 text-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition-colors text-sm">
+                        Sign Up
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+
+
+  <!-- Header & Scoreboard -->
+  <header class="w-full max-w-xl mx-auto p-4 flex flex-col items-center gap-2 z-10">
+    <div class="w-full flex justify-between items-center bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl px-5 py-3 shadow-xl">
+      <div>
+        <h1 class="text-xs uppercase tracking-widest text-emerald-400 font-bold">Indian Players League</h1>
+        <div class="flex items-baseline gap-1 mt-0.5">
+          <span id="display-score" class="text-3xl font-extrabold tracking-tight">0</span>
+          <span class="text-slate-500 font-semibold text-lg">/</span>
+          <span id="display-wickets" class="text-xl font-bold text-red-400">0</span>
+        </div>
+      </div>
+      
+      <div class="text-center bg-slate-950/50 px-3 py-1.5 rounded-xl border border-slate-800/50">
+        <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Target</span>
+        <span id="display-target" class="text-lg font-extrabold text-amber-400">Endless</span>
+      </div>
+
+      <div class="text-right">
+        <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Overs</span>
+        <span id="display-overs" class="text-lg font-bold text-slate-200">0.0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Game Court -->
+  <main class="flex-grow flex items-center justify-center relative w-full max-w-xl mx-auto px-4">
+    <!-- Screen Overlay / Start Game screen -->
+    <div id="start-overlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md px-6 text-center rounded-3xl transition-all duration-300">
+      <div class="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 rounded-3xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/5 animate-bounce">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          <path d="M2 12h20" />
+        </svg>
+      </div>
+      
+      <h2 class="text-3xl font-extrabold tracking-tight mb-2">Indian Players League</h2>
+      <p class="text-slate-400 text-sm max-w-xs mb-8">Tap/Click to swing! Guard the wickets and time your stroke precisely to smash massive runs.</p>
+
+      <div class="grid grid-cols-2 gap-4 w-full max-w-sm mb-6">
+        <button id="btn-arcade" class="bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg shadow-emerald-900/30 transition transform active:scale-95 flex flex-col items-center gap-1">
+          <span>Arcade Mode</span>
+          <span class="text-[10px] opacity-75 font-normal font-sans">3 Wickets, Highscore</span>
+        </button>
+        <button id="btn-superover" class="bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg shadow-amber-900/30 transition transform active:scale-95 flex flex-col items-center gap-1">
+          <span>Super Over</span>
+          <span class="text-[10px] opacity-75 font-normal font-sans">Chase 18 off 6 balls</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Game Canvas Wrapper with Inner HUD Overlays (Ensures proper absolute rendering) -->
+    <div class="relative w-full aspect-[4/5] bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
+      <canvas id="game-canvas" class="w-full h-full block"></canvas>
+      
+      <!-- Gameplay Feedback Banner (Inside container, elevated z-index) -->
+      <div id="feedback-banner" class="absolute top-6 left-1/2 transform -translate-x-1/2 z-30 bg-emerald-500 text-slate-950 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-xl pointer-events-none opacity-0 scale-75 transition-all duration-200">
+        Perfect Timing!
+      </div>
+
+      <!-- Runs/Wickets Graphic Banner Overlay (Inside container, elevated z-index) -->
+      <div id="runs-overlay" class="absolute inset-0 pointer-events-none flex items-center justify-center z-30 select-none opacity-0 transition-opacity duration-150">
+        <div id="runs-text" class="retro-font text-4xl md:text-5xl text-amber-400 text-center drop-shadow-[0_5px_15px_rgba(245,158,11,0.5)]">6 RUNS!</div>
+      </div>
+
+      <!-- Timing Assist Indicator Line at absolute bottom for accessibility -->
+      <div class="absolute bottom-4 left-6 right-6 h-1.5 bg-slate-800/80 rounded-full overflow-hidden">
+        <div id="timing-progress" class="h-full w-0 bg-gradient-to-r from-red-500 via-emerald-400 to-red-500 transition-all duration-75"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Control & Guide Footer -->
+  <footer class="w-full max-w-xl mx-auto p-4 flex flex-col items-center gap-2 z-10 mb-2">
+    <!-- Active Action Button (Whole screen is click target, but this is satisfying) -->
+    <button id="swing-btn" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-lg font-black uppercase tracking-widest rounded-2xl shadow-lg transition active:scale-[0.98] active:brightness-95">
+      Tap / Space to Swing
+    </button>
+    <p class="text-xs text-slate-400 font-medium text-center mt-1">
+      Tip: Swing when the ball turns <span class="text-emerald-400 font-bold">bright green</span> in the swing zone ring!
+    </p>
+  </footer>
+
+  <!-- Game Over Screen -->
+  <div id="game-over-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-lg z-50 flex flex-col items-center justify-center p-6 text-center hidden">
+    <div class="w-20 h-20 bg-red-500/10 border border-red-500/30 rounded-3xl flex items-center justify-center mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </div>
+    
+    <h3 class="text-3xl font-extrabold text-white mb-1">Innings Over</h3>
+    <p id="game-over-status" class="text-slate-400 text-sm max-w-xs mb-8">You finished your innings!</p>
+
+    <!-- Score Breakdown Card -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-sm mb-8 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
+        <span class="text-slate-400 text-sm font-semibold">Total Score</span>
+        <span id="final-score" class="text-2xl font-black text-white">42 runs</span>
+      </div>
+      <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
+        <span class="text-slate-400 text-sm font-semibold">Overs Played</span>
+        <span id="final-overs" class="text-base font-bold text-slate-200">1.2 overs</span>
+      </div>
+      <div class="flex justify-between items-center pb-1">
+        <span class="text-slate-400 text-sm font-semibold">Best Streak</span>
+        <span id="final-streak" class="text-base font-bold text-emerald-400">3 Fours</span>
+      </div>
+    </div>
+
+    <button id="btn-restart" class="w-full max-w-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-2xl transition active:scale-95 shadow-xl shadow-emerald-500/10">
+      Play Again
+    </button>
+  </div>
+
+  <!-- Real-time Web Audio Synthesizer Class -->
+  <script>
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playHit(quality = 'good') {
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        // Bat meeting wood frequencies
+        const pitch = quality === 'perfect' ? 440 : quality === 'good' ? 380 : 290;
+        osc.frequency.setValueAtTime(pitch, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.12);
+
+        gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+        osc.type = 'triangle';
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.16);
+
+        // Add short snap/noise transient
+        const noise = this.ctx.createBufferSource();
+        const bufferSize = this.ctx.sampleRate * 0.02; // 20ms burst
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        noise.buffer = buffer;
+
+        const noiseFilter = this.ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.value = 1200;
+        
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(quality === 'perfect' ? 0.4 : 0.2, this.ctx.currentTime);
+        noiseGain.gain.exponentialRampToValueAtTime(0.005, this.ctx.currentTime + 0.02);
+
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+
+        noise.start();
+      }
+
+      playBowled() {
+        this.init();
+        if (!this.ctx) return;
+
+        // Crash sound
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(40, this.ctx.currentTime + 0.4);
+
+        gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.55);
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(400, this.ctx.currentTime);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.6);
+
+        // Splintering wood noise
+        const bufferSize = this.ctx.sampleRate * 0.4;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        
+        const noiseSource = this.ctx.createBufferSource();
+        noiseSource.buffer = buffer;
+
+        const noiseFilter = this.ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(800, this.ctx.currentTime);
+        noiseFilter.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.35);
+
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+
+        noiseSource.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        gain.connect(this.ctx.destination);
+
+        noiseSource.start();
+      }
+
+      playCheer(type = 'normal') {
+        this.init();
+        if (!this.ctx) return;
+
+        // Enhanced Stadium Spectator Cheer Sweep
+        const duration = type === 'six' ? 3.0 : 2.0;
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        
+        // Brown/Pink noise simulation
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          data[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = data[i];
+          data[i] *= 3.8; // Gain boost
+        }
+
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+
+        // Sweep resonance filter for organic roaring sounds
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(550, this.ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(type === 'six' ? 850 : 700, this.ctx.currentTime + 0.4);
+        filter.Q.value = 1.2;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+        // Rich attack curve
+        gain.gain.linearRampToValueAtTime(type === 'six' ? 0.55 : 0.4, this.ctx.currentTime + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        source.start();
+      }
+
+      playSwoosh() {
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(350, this.ctx.currentTime + 0.2);
+
+        gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.4);
+      }
+    }
+
+    const sound = new SoundEngine();
+  </script>
+
+  <!-- Main Game Loop and Canvas Drawing Logic -->
+  <script>
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Layout Dimensions Strategy
+    let width = 0;
+    let height = 0;
+
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      width = container.clientWidth;
+      height = container.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // State Constants
+    const ST_IDLE = 'idle';
+    const ST_RUNUP = 'runup';
+    const ST_DELIVERY = 'delivery';
+    const ST_PLAYED = 'played';
+    const ST_BOWLED = 'bowled';
+    const ST_OUT = 'out';
+
+    // Game Variables
+    let gameState = ST_IDLE;
+    let gameMode = 'arcade'; // 'arcade' or 'superover'
+    let score = 0;
+    let wickets = 0;
+    let ballsPlayed = 0;
+    let totalTarget = null;
+    let bestStreak = 0;
+    let currentStreak = 0;
+
+    // Visual camera juice
+    let screenShake = 0;
+
+    // Ball attributes
+    let ball = {
+      x: 0,
+      y: 0,
+      z: 0, // Depth simulation (z goes from 0 to 1)
+      vx: 0,
+      vy: 0,
+      vz: 0,
+      radius: 0,
+      shadowRadius: 0,
+      bounced: false,
+      bounceZ: 0.55, // Middle of pitch
+      spin: 0,
+      color: '#e11d48' // Red ball
+    };
+
+    // Stumps physics/positions
+    const stumps = {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      shattered: false,
+      pieces: []
+    };
+
+    // New Timeline-Based Bat Swing Stance
+    const bat = {
+      angle: -0.7, // Stance angle
+      swingProgress: 0, // Timeline tracker [0 to 1]
+      swinging: false,
+      pivotX: 0,
+      pivotY: 0,
+      length: 0,
+      trail: [] // Visual motion trail segments
+    };
+
+    // Particle engines
+    let particles = [];
+
+    // Timing helper indicators
+    const TIMING_LATE = 'LATE';
+    const TIMING_GOOD = 'GOOD';
+    const TIMING_PERFECT = 'PERFECT';
+    const TIMING_EARLY = 'EARLY';
+    const TIMING_BOWLED = 'BOWLED';
+
+    // UI Elements
+    const startOverlay = document.getElementById('start-overlay');
+    const swingBtn = document.getElementById('swing-btn');
+    const feedbackBanner = document.getElementById('feedback-banner');
+    const runsOverlay = document.getElementById('runs-overlay');
+    const runsText = document.getElementById('runs-text');
+    const gameOverModal = document.getElementById('game-over-modal');
+
+    const displayScore = document.getElementById('display-score');
+    const displayWickets = document.getElementById('display-wickets');
+    const displayTarget = document.getElementById('display-target');
+    const displayOvers = document.getElementById('display-overs');
+
+    // Setup interactive overlay modes
+    document.getElementById('btn-arcade').addEventListener('click', () => {
+      initGame('arcade');
+    });
+    document.getElementById('btn-superover').addEventListener('click', () => {
+      initGame('superover');
+    });
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      gameOverModal.classList.add('hidden');
+      startOverlay.classList.remove('hidden');
+    });
+
+    // Spacebar to play/swing
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        triggerSwing();
+      }
+    });
+
+    // Tap/Click anywhere on main canvas wrapper
+    canvas.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      triggerSwing();
+    });
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      triggerSwing();
+    });
+    swingBtn.addEventListener('click', () => {
+      triggerSwing();
+    });
+
+    // Initialize Game Engine
+    function initGame(mode) {
+      sound.init();
+      gameMode = mode;
+      score = 0;
+      wickets = 0;
+      ballsPlayed = 0;
+      currentStreak = 0;
+      bestStreak = 0;
+      screenShake = 0;
+
+      if (gameMode === 'superover') {
+        totalTarget = 18;
+        displayTarget.textContent = totalTarget;
+      } else {
+        totalTarget = null;
+        displayTarget.textContent = 'Endless';
+      }
+
+      updateUI();
+      startOverlay.classList.add('hidden');
+      resetDelivery();
+    }
+
+    // Reset delivery for next bowl
+    function resetDelivery() {
+      gameState = ST_IDLE;
+      stumps.shattered = false;
+      stumps.pieces = [];
+      
+      // Pitch position anchors
+      stumps.width = width * 0.08;
+      stumps.height = height * 0.16;
+      stumps.x = width / 2;
+      stumps.y = height * 0.72; // Where stumps base is grounded
+
+      // Recreate stumps pieces
+      createStumpSegments();
+
+      // Reset bat positions to stand "Before" (in front of) the wicket physically
+      bat.pivotX = stumps.x + width * 0.02;
+      bat.pivotY = stumps.y - height * 0.04; // Positioned up-pitch (closer to the bowler)
+      bat.length = height * 0.15;
+      bat.angle = -0.7;
+      bat.swingProgress = 0;
+      bat.swinging = false;
+      bat.trail = [];
+
+      // Start automatic bowler windup
+      setTimeout(() => {
+        if (gameState === ST_IDLE) {
+          startDelivery();
+        }
+      }, 1000);
+    }
+
+    function createStumpSegments() {
+      const sx = stumps.x;
+      const sy = stumps.y;
+      const sw = stumps.width;
+      const sh = stumps.height;
+      const gap = sw / 3;
+
+      stumps.pieces = [];
+      // 3 vertical stumps
+      for (let i = 0; i < 3; i++) {
+        stumps.pieces.push({
+          x: sx - sw/2 + (i * gap) + gap/2,
+          y: sy - sh/2,
+          w: sw * 0.15,
+          h: sh,
+          vx: 0,
+          vy: 0,
+          angle: 0,
+          vAngle: 0,
+          color: '#e2e8f0',
+          type: 'stump'
+        });
+      }
+      // 2 bails
+      stumps.pieces.push({
+        x: sx - sw/3,
+        y: sy - sh - 4,
+        w: sw * 0.45,
+        h: sh * 0.08,
+        vx: 0,
+        vy: 0,
+        angle: 0,
+        vAngle: 0,
+        color: '#e2e8f0',
+        type: 'bail'
+      });
+      stumps.pieces.push({
+        x: sx + sw/3,
+        y: sy - sh - 4,
+        w: sw * 0.45,
+        h: sh * 0.08,
+        vx: 0,
+        vy: 0,
+        angle: 0,
+        vAngle: 0,
+        color: '#e2e8f0',
+        type: 'bail'
+      });
+    }
+
+    // Trigger Delivery Action
+    function startDelivery() {
+      gameState = ST_RUNUP;
+      
+      // Dynamic bowling AI difficulty curves - Speeds reduced by 50% for high reactiveness
+      const deliveryTypes = ['fast', 'spin-left', 'spin-right', 'slow', 'yorker'];
+      const chosenType = deliveryTypes[Math.floor(Math.random() * deliveryTypes.length)];
+
+      sound.playSwoosh();
+
+      // Launch Ball from Bowler hand in distance
+      ball.x = width / 2;
+      ball.y = height * 0.32; // Bowler releasing point
+      ball.z = 0; // Starts from bowler
+      ball.bounced = false;
+      ball.spin = 0;
+      ball.bounceZ = 0.55;
+
+      // Custom delivery behaviors (CALIBRATED SLOW VELOCITIES for smooth action)
+      switch (chosenType) {
+        case 'fast':
+          ball.vz = 0.016; // 60 frames = 1.0 second reaction
+          ball.vx = (Math.random() - 0.5) * 0.8;
+          ball.color = '#ef4444'; // Red
+          break;
+        case 'spin-left':
+          ball.vz = 0.011; // ~90 frames = 1.5 seconds reaction
+          ball.vx = -0.4;
+          ball.spin = 1.2; 
+          ball.color = '#10b981'; // Green
+          break;
+        case 'spin-right':
+          ball.vz = 0.011;
+          ball.vx = 0.4;
+          ball.spin = -1.2; 
+          ball.color = '#3b82f6'; // Blue
+          break;
+        case 'slow':
+          ball.vz = 0.009; // ~110 frames = 1.8 seconds reaction
+          ball.vx = (Math.random() - 0.5) * 0.4;
+          ball.color = '#a855f7'; // Purple
+          break;
+        case 'yorker':
+          ball.vz = 0.014;
+          ball.bounceZ = 0.82; 
+          ball.vx = (Math.random() - 0.5) * 0.3;
+          ball.color = '#f59e0b'; // Amber
+          break;
+      }
+
+      gameState = ST_DELIVERY;
+    }
+
+    // Capture Play Swing Tap
+    function triggerSwing() {
+      if (gameState === ST_IDLE || gameState === ST_RUNUP || gameState === ST_OUT || gameState === ST_BOWLED) {
+        return; // Can't swing yet
+      }
+
+      if (bat.swinging) return; // Debounce Swing
+
+      bat.swinging = true;
+      bat.swingProgress = 0;
+      sound.playSwoosh();
+
+      // Evaluate hit zone timing directly
+      if (gameState === ST_DELIVERY) {
+        evaluateTiming(ball.z);
+      }
+    }
+
+    // Precise Timing Quality Resolver
+    function evaluateTiming(ballDepth) {
+      let runResult = 0;
+      let timingResult = '';
+
+      // Check range metrics (Optimized depths based on slower ball physics)
+      if (ballDepth < 0.74) {
+        // Swing far too early
+        timingResult = "TOO EARLY!";
+        runResult = 0;
+        showFeedback(timingResult, 'bg-red-500 text-white font-bold');
+      } else if (ballDepth >= 0.74 && ballDepth < 0.82) {
+        timingResult = "EARLY SHOT";
+        runResult = Math.random() > 0.4 ? 1 : 2; 
+        showFeedback("Early Hit (1-2 Runs)", 'bg-amber-500 text-slate-950 font-bold');
+        triggerShotSuccess(runResult);
+      } else if (ballDepth >= 0.82 && ballDepth < 0.86) {
+        timingResult = "GOOD TIMING!";
+        runResult = Math.random() > 0.3 ? 4 : 2; 
+        showFeedback("Good Shot!", 'bg-emerald-400 text-slate-950 font-bold');
+        triggerShotSuccess(runResult);
+      } else if (ballDepth >= 0.86 && ballDepth <= 0.94) {
+        // The sweet-spot has been slightly broadened for high accessibility
+        timingResult = "PERFECT TIMING!";
+        runResult = 6; 
+        showFeedback("⭐ PERFECT SIX ⭐", 'bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black animate-bounce');
+        triggerShotSuccess(runResult);
+      } else if (ballDepth > 0.94 && ballDepth <= 0.98) {
+        timingResult = "LATE SHOT";
+        runResult = Math.random() > 0.5 ? 1 : 0;
+        showFeedback("Late Hit (0-1 Runs)", 'bg-amber-500 text-slate-950 font-bold');
+        if (runResult > 0) {
+          triggerShotSuccess(runResult);
+        } else {
+          showFeedback("Too Late!", 'bg-red-500 text-white font-bold');
+        }
+      } else {
+        timingResult = "TOO LATE!";
+        runResult = 0;
+        showFeedback("Missed Completely!", 'bg-red-500 text-white font-bold');
+      }
+    }
+
+    // Executed when bat successfully intercepts ball
+    function triggerShotSuccess(runs) {
+      gameState = ST_PLAYED;
+      
+      // Sound cues
+      const quality = runs === 6 ? 'perfect' : runs >= 4 ? 'good' : 'weak';
+      sound.playHit(quality);
+
+      if (runs >= 4) {
+        sound.playCheer(runs === 6 ? 'six' : 'normal');
+        
+        // Jolt screen shake on hitting boundaries
+        screenShake = runs === 6 ? 15 : 7;
+
+        // BLAST BOUNDARY CELEBRATION CONFETTI
+        const confettiCount = runs === 6 ? 60 : 30;
+        const colors = ['#f59e0b', '#3b82f6', '#10b981', '#ec4899', '#ef4444', '#a855f7', '#ffffff'];
+        for (let i = 0; i < confettiCount; i++) {
+          particles.push({
+            x: Math.random() * width,
+            y: height, // Shoots up from the stadium floor/bottom
+            vx: (Math.random() - 0.5) * 12,
+            vy: -Math.random() * 15 - 8,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: 1.0,
+            size: Math.random() * 8 + 5,
+            gravity: 0.28,
+            isConfetti: true,
+            rot: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.25
+          });
+        }
+
+        // RISE STADIUM SPECTATOR EMOJI WAVES
+        const emojis = ['🎉', '🙌', '👏', '🏏', '⭐'];
+        const emojiCount = runs === 6 ? 15 : 8;
+        for (let i = 0; i < emojiCount; i++) {
+          particles.push({
+            x: Math.random() * (width - 40) + 20,
+            y: height - 10,
+            vx: (Math.random() - 0.5) * 3,
+            vy: -Math.random() * 4 - 2,
+            alpha: 1.0,
+            isEmoji: true,
+            emoji: emojis[Math.floor(Math.random() * emojis.length)],
+            size: Math.random() * 8 + 18
+          });
+        }
+      }
+
+      // Add to score
+      score += runs;
+      ballsPlayed++;
+      
+      if (runs > 0) {
+        currentStreak++;
+        if (currentStreak > bestStreak) bestStreak = currentStreak;
+      } else {
+        currentStreak = 0;
+      }
+
+      // Shoot ball out in dynamic trajectory based on runs
+      const shotAngle = (Math.random() - 0.5) * 1.8; // Left or right direction
+      ball.vx = Math.sin(shotAngle) * (runs * 4 + 4);
+      ball.vy = -Math.cos(shotAngle) * (runs * 3 + 5);
+      ball.vz = -0.04; // Flies away in distance
+
+      // Display runs popup
+      displayRunsEffect(runs);
+      updateUI();
+
+      // Check win condition for Super Over
+      if (gameMode === 'superover' && score >= totalTarget) {
+        setTimeout(endInnings, 1500);
+        return;
+      }
+
+      // Check ball limits on Super over
+      if (gameMode === 'superover' && ballsPlayed >= 6) {
+        setTimeout(endInnings, 1500);
+        return;
+      }
+
+      // Next ball interval
+      setTimeout(resetDelivery, 1800);
+    }
+
+    // Trigger Bowled Action (Ball broke through)
+    function triggerBowled() {
+      gameState = ST_BOWLED;
+      wickets++;
+      ballsPlayed++;
+      currentStreak = 0;
+
+      sound.playBowled();
+      shatterStumps();
+      showFeedback("OUT! CLEAN BOWLED", 'bg-red-600 text-white font-black animate-ping');
+      displayWicketEffect();
+      updateUI();
+
+      // Wickets checking logic
+      if (gameMode === 'arcade' && wickets >= 3) {
+        setTimeout(endInnings, 1500);
+        return;
+      }
+
+      if (gameMode === 'superover') {
+        if (wickets >= 1 || ballsPlayed >= 6) {
+          setTimeout(endInnings, 1500);
+          return;
+        }
+      }
+
+      setTimeout(resetDelivery, 2000);
+    }
+
+    function shatterStumps() {
+      stumps.shattered = true;
+      screenShake = 10; // Bowled hit shake!
+      // Apply explosive forces outward from stump impact point
+      stumps.pieces.forEach(p => {
+        p.vx = (Math.random() - 0.5) * 12;
+        p.vy = -Math.random() * 10 - 5;
+        p.vAngle = (Math.random() - 0.5) * 0.6;
+      });
+
+      // Spawn red flashing spark particles
+      for (let i = 0; i < 25; i++) {
+        particles.push({
+          x: stumps.x + (Math.random() - 0.5) * 30,
+          y: stumps.y - (Math.random()) * 80,
+          vx: (Math.random() - 0.5) * 15,
+          vy: -Math.random() * 12 - 3,
+          color: '#ef4444',
+          alpha: 1.0,
+          size: Math.random() * 4 + 2,
+          gravity: 0.3
+        });
+      }
+    }
+
+    function endInnings() {
+      gameState = ST_OUT;
+      let statusStr = "";
+      
+      if (gameMode === 'superover') {
+        if (score >= totalTarget) {
+          statusStr = "🎉 Magnificent Chase! You successfully won the Super Over!";
+        } else {
+          statusStr = "❌ Target missed! The bowler defended the total successfully.";
+        }
+      } else {
+        statusStr = `Game Over! You faced ${ballsPlayed} balls with an ultimate highscore.`;
+      }
+
+      document.getElementById('game-over-status').textContent = statusStr;
+      document.getElementById('final-score').textContent = `${score} runs`;
+      document.getElementById('final-overs').textContent = `${Math.floor(ballsPlayed / 6)}.${ballsPlayed % 6} overs`;
+      document.getElementById('final-streak').textContent = `${bestStreak} hits`;
+
+      gameOverModal.classList.remove('hidden');
+    }
+
+    function updateUI() {
+      displayScore.textContent = score;
+      displayWickets.textContent = wickets;
+      
+      const oversVal = `${Math.floor(ballsPlayed / 6)}.${ballsPlayed % 6}`;
+      displayOvers.textContent = oversVal;
+    }
+
+    function showFeedback(text, classes) {
+      feedbackBanner.textContent = text;
+      feedbackBanner.className = `absolute top-6 left-1/2 transform -translate-x-1/2 z-30 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-xl pointer-events-none transition-all duration-200 opacity-100 scale-100 ${classes}`;
+      
+      setTimeout(() => {
+        feedbackBanner.style.opacity = '0';
+        feedbackBanner.style.transform = 'translate(-50%, 0) scale(0.75)';
+      }, 1000);
+    }
+
+    // Dynamic Central Retro Screen overlay for scoring and out metrics
+    function displayRunsEffect(runs) {
+      if (runs === 6) {
+        runsText.textContent = "★ SIX ★";
+        runsText.className = "retro-font text-5xl md:text-7xl text-amber-400 text-center drop-shadow-[0_8px_20px_rgba(245,158,11,0.85)] scale-pop";
+      } else if (runs === 4) {
+        runsText.textContent = "⚡ FOUR ⚡";
+        runsText.className = "retro-font text-4xl md:text-6xl text-blue-400 text-center drop-shadow-[0_8px_20px_rgba(59,130,246,0.85)] scale-pop";
+      } else {
+        runsText.textContent = `+${runs} RUN${runs > 1 ? 'S' : ''}`;
+        runsText.className = "retro-font text-3xl md:text-5xl text-emerald-300 text-center drop-shadow-[0_5px_10px_rgba(16,185,129,0.5)] scale-pop";
+      }
+
+      // Reset animation node to force reflow (Guarantees animations replay on consecutive 4s or 6s!)
+      runsText.style.animation = 'none';
+      runsText.offsetHeight; /* trigger reflow */
+      runsText.style.animation = null;
+
+      runsOverlay.style.opacity = '1';
+      setTimeout(() => {
+        runsOverlay.style.opacity = '0';
+      }, 1300);
+    }
+
+    // Wicket Overlay effect
+    function displayWicketEffect() {
+      runsText.textContent = "WICKET!";
+      runsText.className = "retro-font text-5xl md:text-7xl text-red-500 text-center drop-shadow-[0_8px_25px_rgba(239,68,68,0.9)] shake-pop";
+      
+      // Reset animation node to force reflow
+      runsText.style.animation = 'none';
+      runsText.offsetHeight; /* trigger reflow */
+      runsText.style.animation = null;
+
+      runsOverlay.style.opacity = '1';
+      setTimeout(() => {
+        runsOverlay.style.opacity = '0';
+      }, 1500);
+    }
+
+    // Core Drawing Engine & Physics loop
+    function updatePhysics() {
+      // 1. Screen Shake Decay
+      if (screenShake > 0) {
+        screenShake *= 0.9;
+        if (screenShake < 0.2) screenShake = 0;
+      }
+
+      // 2. Particle Systems (Confetti, Emojis, Sparks)
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        if (p.gravity) p.vy += p.gravity;
+        
+        // Custom physics properties for confetti/emojis
+        if (p.isConfetti) {
+          p.rot += p.rotSpeed;
+          p.alpha -= 0.012; // slow fade
+        } else if (p.isEmoji) {
+          p.alpha -= 0.015; // float and dissolve
+        } else {
+          p.alpha -= 0.02; // general trail
+        }
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+
+      // 3. Ball Path Mechanics
+      if (gameState === ST_DELIVERY) {
+        // Accelerate/move depth
+        ball.z += ball.vz;
+        
+        // Match trajectory path
+        ball.x += ball.vx;
+        
+        // Spin action curving
+        if (ball.z > ball.bounceZ) {
+          ball.x += ball.spin * 0.15;
+        }
+
+        // Simulating 2.5D visual height with a parabolic flight arc
+        const flightCurve = Math.sin(ball.z * Math.PI) * -120;
+        ball.y = (height * 0.32) + (ball.z * (stumps.y - height * 0.35)) + flightCurve;
+
+        // Size scaling based on perspective depth
+        ball.radius = 4 + (ball.z * 16);
+        ball.shadowRadius = 2 + (ball.z * 14);
+
+        // Map timing indicator bar in footer UI
+        const indicatorWidth = Math.max(0, Math.min(100, ball.z * 100));
+        document.getElementById('timing-progress').style.width = `${indicatorWidth}%`;
+
+        // Bounce effect
+        if (ball.z >= ball.bounceZ && !ball.bounced) {
+          ball.bounced = true;
+          // Spawn turf dirt dust particles
+          for (let i = 0; i < 8; i++) {
+            particles.push({
+              x: ball.x,
+              y: ball.y + ball.radius,
+              vx: (Math.random() - 0.5) * 5,
+              vy: -Math.random() * 4 - 1,
+              color: '#d97706', // Brown dirt
+              alpha: 0.8,
+              size: Math.random() * 3 + 1,
+              gravity: 0.1
+            });
+          }
+        }
+
+        // Check if ball went past wicket without swinging or hit the wicket
+        if (ball.z >= 0.98) {
+          // If ball aligns perfectly with width of stumps, it's a Clean Bowled!
+          const inStumpsRange = Math.abs(ball.x - stumps.x) < stumps.width * 0.65;
+          if (inStumpsRange) {
+            triggerBowled();
+          } else {
+            // Bye runs / missed
+            showFeedback("Keeper Caught", 'bg-slate-700 text-slate-300');
+            ballsPlayed++;
+            updateUI();
+            
+            if (gameMode === 'superover' && ballsPlayed >= 6) {
+              setTimeout(endInnings, 1200);
+            } else {
+              setTimeout(resetDelivery, 1200);
+            }
+            gameState = ST_IDLE;
+          }
+        }
+      } else if (gameState === ST_PLAYED) {
+        // Ball flying away from hit
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        ball.radius *= 0.96; // Shrinks as it travels further
+        
+        // Spawn sparks trail on big sixes
+        if (ball.radius > 2 && Math.random() > 0.4) {
+          particles.push({
+            x: ball.x,
+            y: ball.y,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            color: '#fbbf24',
+            alpha: 0.7,
+            size: Math.random() * 3 + 1
+          });
+        }
+      }
+
+      // 4. Shattered Stumps Physics
+      if (stumps.shattered) {
+        stumps.pieces.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.4; // gravity
+          p.angle += p.vAngle;
+        });
+      }
+
+      // 5. Overhauled Bat Guided Timeline Swing Mechanics
+      if (bat.swinging) {
+        bat.swingProgress += 0.08; // Step size controls duration of swing (smooth & crisp)
+        if (bat.swingProgress >= 1) {
+          bat.swingProgress = 0;
+          bat.swinging = false;
+          bat.angle = -0.7; // Return to stance
+        } else {
+          // Guided path curve: Starts back, sweeps quickly forward to swing, completes follow-through
+          if (bat.swingProgress < 0.3) {
+            // Forward smash sweep (fast)
+            const t = bat.swingProgress / 0.3;
+            bat.angle = -0.7 + t * 2.5; // Sweep from -0.7 to +1.8 rad
+          } else {
+            // Back to stance follow-through (relaxing return)
+            const t = (bat.swingProgress - 0.3) / 0.7;
+            bat.angle = 1.8 - t * 2.5;
+          }
+        }
+
+        // Keep visual trail history
+        bat.trail.push(bat.angle);
+        if (bat.trail.length > 5) {
+          bat.trail.shift();
+        }
+      } else {
+        bat.angle = -0.7;
+        bat.trail = [];
+      }
+    }
+
+    // Helper to draw a stylized human batsman/batter
+    function drawBatsman(ctx, x, y, sizeMultiplier, isSwinging, swingProgress) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      // Determine lean/stance adjustments based on swing progress
+      let bodyLean = 0;
+      let kneeBend = 0;
+      let armReachX = 0;
+      let armReachY = 0;
+
+      if (isSwinging) {
+        if (swingProgress < 0.3) {
+          const t = swingProgress / 0.3;
+          bodyLean = -15 * t * (Math.PI / 180); // Leans forward into the ball
+          kneeBend = 3 * t;
+          armReachX = -10 * t;
+          armReachY = 5 * t;
+        } else {
+          const t = (swingProgress - 0.3) / 0.7;
+          bodyLean = (-15 + 10 * t) * (Math.PI / 180); // Returns slowly
+          kneeBend = 3 * (1 - t);
+          armReachX = -10 * (1 - t);
+          armReachY = 5 * (1 - t);
+        }
+      }
+
+      // Scaled dimensions
+      const padWidth = 14 * sizeMultiplier;
+      const padHeight = 36 * sizeMultiplier;
+      const torsoWidth = 26 * sizeMultiplier;
+      const torsoHeight = 44 * sizeMultiplier;
+      const headRadius = 11 * sizeMultiplier;
+
+      // 1. Draw Legs and Pads (Stretched out in stance)
+      ctx.fillStyle = '#f1f5f9'; // Bright white protective pads
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+
+      // Back Leg Pad (Slightly further back)
+      ctx.beginPath();
+      ctx.roundRect(14, 15 + kneeBend, padWidth, padHeight, 5);
+      ctx.fill();
+      ctx.stroke();
+
+      // Front Leg Pad (Closer to wicket side)
+      ctx.beginPath();
+      ctx.roundRect(-2, 10 + kneeBend, padWidth, padHeight, 5);
+      ctx.fill();
+      ctx.stroke();
+
+      // Pad straps details
+      ctx.strokeStyle = '#ef4444'; // Red pad strap accents
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-2, 20 + kneeBend); ctx.lineTo(-2 + padWidth, 20 + kneeBend);
+      ctx.moveTo(-2, 35 + kneeBend); ctx.lineTo(-2 + padWidth, 35 + kneeBend);
+      ctx.stroke();
+
+      // 2. Torso (Blue Jersey)
+      ctx.save();
+      ctx.rotate(bodyLean); // Tilt torso forward on swing
+      
+      // Shadow under torso
+      ctx.fillStyle = '#1d4ed8'; // Royal blue team India jersey
+      ctx.beginPath();
+      ctx.roundRect(-14, -38, torsoWidth, torsoHeight, [8, 8, 4, 4]);
+      ctx.fill();
+
+      // Jersey Number / Detail striping
+      ctx.fillStyle = '#f59e0b'; // Gold stripes
+      ctx.fillRect(-14, -28, 4, 15);
+      ctx.fillRect(8, -28, 4, 15);
+
+      // Gold collar/V-neck
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-6, -38);
+      ctx.lineTo(0, -32);
+      ctx.lineTo(6, -38);
+      ctx.stroke();
+
+      // 3. Head & Helmet (Safe green protective helmet)
+      ctx.fillStyle = '#065f46'; // Forest green helmet dome
+      ctx.beginPath();
+      ctx.arc(0, -49, headRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Helmet Visor & Grill (Black faceguard protection)
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      
+      // Faceguard peak visor
+      ctx.beginPath();
+      ctx.moveTo(-11, -50);
+      ctx.quadraticCurveTo(-15, -46, -11, -42);
+      ctx.stroke();
+
+      // Metallic protective grill lines
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-10, -45); ctx.lineTo(-3, -42);
+      ctx.moveTo(-9, -43); ctx.lineTo(-4, -45);
+      ctx.stroke();
+
+      // Visor highlight
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(-2, -52, headRadius * 0.7, Math.PI, Math.PI * 1.5);
+      ctx.fill();
+
+      // 4. Arms & Protective Gloves (Reaching out towards the bat)
+      ctx.fillStyle = '#1e3a8a'; // Blue sleeves
+      ctx.strokeStyle = '#f1f5f9'; // White gloves
+      ctx.lineWidth = 4;
+
+      // Back arm
+      ctx.beginPath();
+      ctx.moveTo(8, -26);
+      ctx.lineTo(24 + armReachX, -16 + armReachY);
+      ctx.stroke();
+
+      // Front arm (reaching across torso)
+      ctx.beginPath();
+      ctx.moveTo(-10, -26);
+      ctx.lineTo(16 + armReachX, -16 + armReachY);
+      ctx.stroke();
+
+      // Thick batting gloves on handle
+      ctx.fillStyle = '#ef4444'; // Red highlighted knuckle guards
+      ctx.beginPath();
+      ctx.arc(16 + armReachX, -16 + armReachY, 5, 0, Math.PI * 2);
+      ctx.arc(22 + armReachX, -16 + armReachY, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore(); // Restore bodyLean tilt
+      ctx.restore(); // Restore global batsman position
+    }
+
+    function render() {
+      ctx.save();
+
+      // Screen shake displacement translation
+      if (screenShake > 0) {
+        const dx = (Math.random() - 0.5) * screenShake;
+        const dy = (Math.random() - 0.5) * screenShake;
+        ctx.translate(dx, dy);
+      }
+
+      // Clear with elegant sport pitch gradients
+      ctx.fillStyle = '#0f172a'; // Deep space slate
+      ctx.fillRect(0, 0, width, height);
+
+      // Pitch Perspective Lines
+      ctx.beginPath();
+      ctx.moveTo(width * 0.42, height * 0.35);
+      ctx.lineTo(width * 0.58, height * 0.35);
+      ctx.lineTo(width * 0.75, height * 0.75);
+      ctx.lineTo(width * 0.25, height * 0.75);
+      ctx.closePath();
+      
+      const pitchGrad = ctx.createLinearGradient(0, height * 0.35, 0, height * 0.75);
+      pitchGrad.addColorStop(0, '#047857'); // Dark green far-end
+      pitchGrad.addColorStop(1, '#059669'); // Rich grass emerald near-end
+      ctx.fillStyle = pitchGrad;
+      ctx.fill();
+
+      // Pitch Boundary Crease Lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2;
+      
+      // Bowling Crease line (far)
+      ctx.beginPath();
+      ctx.moveTo(width * 0.43, height * 0.37);
+      ctx.lineTo(width * 0.57, height * 0.37);
+      ctx.stroke();
+
+      // Batting Crease line (near)
+      ctx.beginPath();
+      ctx.moveTo(width * 0.28, height * 0.70);
+      ctx.lineTo(width * 0.72, height * 0.70);
+      ctx.stroke();
+
+      // Safe Strike/Perfect Hitting Assist Overlay Zone
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+      ctx.fillRect(0, height * 0.64, width, height * 0.08);
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(0, height * 0.64, width, height * 0.08);
+
+      // Draw Hitting Zone Bullseye on the Pitch
+      const targetY = (height * 0.32) + (0.88 * (stumps.y - height * 0.33));
+      ctx.strokeStyle = 'rgba(52, 211, 153, 0.45)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(width/2, targetY, width * 0.09, width * 0.03, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Label visual trigger zone
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.8)';
+      ctx.font = '800 10px sans-serif';
+      ctx.fillText("SWING ZONE", 20, height * 0.69);
+
+      // 1. Draw Bowler representation at top center
+      ctx.fillStyle = '#475569';
+      ctx.beginPath();
+      ctx.arc(width / 2, height * 0.31, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Draw Stumps
+      if (!stumps.shattered) {
+        const sw = stumps.width;
+        const sh = stumps.height;
+        const sx = stumps.x;
+        const sy = stumps.y;
+        const gap = sw / 3;
+
+        // Vertical lines
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.lineWidth = sw * 0.15;
+        ctx.lineCap = 'round';
+
+        for (let i = 0; i < 3; i++) {
+          const posX = sx - sw/2 + (i * gap) + gap/2;
+          ctx.beginPath();
+          ctx.moveTo(posX, sy);
+          ctx.lineTo(posX, sy - sh);
+          ctx.stroke();
+        }
+
+        // Draw top bails
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = sh * 0.08;
+        ctx.beginPath();
+        ctx.moveTo(sx - sw/2, sy - sh - 2);
+        ctx.lineTo(sx + sw/2, sy - sh - 2);
+        ctx.stroke();
+      } else {
+        // Render shattered fragments with physics positions
+        stumps.pieces.forEach(p => {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+      }
+
+      // 3. Draw Ball Shadow on pitch for high-accuracy timing depth cue
+      if (gameState === ST_DELIVERY) {
+        const shadowY = (height * 0.32) + (ball.z * (stumps.y - height * 0.33));
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.beginPath();
+        ctx.ellipse(ball.x, shadowY, ball.shadowRadius, ball.shadowRadius / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 4. Draw Ball with Visual Clues
+      if (gameState === ST_DELIVERY || gameState === ST_PLAYED) {
+        // Core Feature: Ball glows vibrant green when inside perfect hitting depth
+        const isPerfectHitZone = ball.z >= 0.82 && ball.z <= 0.94;
+        
+        if (isPerfectHitZone && gameState === ST_DELIVERY) {
+          ctx.fillStyle = '#10b981'; // Vibrant Green
+          ctx.shadowColor = '#10b981';
+          ctx.shadowBlur = 15;
+        } else {
+          ctx.fillStyle = ball.color;
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // High gloss edge reflection
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.beginPath();
+        ctx.arc(ball.x - ball.radius * 0.3, ball.y - ball.radius * 0.3, ball.radius * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Reset shadows
+        ctx.shadowBlur = 0;
+      }
+
+      // 5. Render Bat Visual Motion Trails
+      if (bat.swinging && bat.trail.length > 0) {
+        bat.trail.forEach((trailAngle, idx) => {
+          ctx.save();
+          ctx.translate(bat.pivotX, bat.pivotY);
+          ctx.rotate(trailAngle);
+          ctx.fillStyle = `rgba(245, 158, 11, ${0.08 * (idx + 1)})`; // Fade orange trail
+          ctx.beginPath();
+          ctx.roundRect(-width * 0.02, 0, width * 0.04, -bat.length, 6);
+          ctx.fill();
+          ctx.restore();
+        });
+      }
+
+      // 6. DRAW THE HUMAN BATSMAN (PLAYER AVATAR)
+      const scaleMultiplier = width / 450;
+      const batsmanX = bat.pivotX - 18 * scaleMultiplier;
+      const batsmanY = bat.pivotY + 16 * scaleMultiplier;
+      drawBatsman(ctx, batsmanX, batsmanY, scaleMultiplier, bat.swinging, bat.swingProgress);
+
+      // 7. Draw Primary Batter / Bat
+      ctx.save();
+      ctx.translate(bat.pivotX, bat.pivotY);
+      ctx.rotate(bat.angle);
+
+      // Wood Gradient for premium bat representation
+      const woodGrad = ctx.createLinearGradient(0, 0, 0, -bat.length);
+      woodGrad.addColorStop(0, '#78350f'); // Rubber handle grip
+      woodGrad.addColorStop(0.35, '#92400e');
+      woodGrad.addColorStop(0.36, '#d97706'); // English willow wood
+      woodGrad.addColorStop(1, '#f59e0b');
+      
+      ctx.fillStyle = woodGrad;
+      ctx.beginPath();
+      ctx.roundRect(-width * 0.02, 0, width * 0.04, -bat.length, 6);
+      ctx.fill();
+
+      // Grip handle design overlay
+      ctx.fillStyle = '#ef4444'; // Red wrap grip
+      ctx.beginPath();
+      ctx.roundRect(-width * 0.015, -bat.length * 0.65, width * 0.03, -bat.length * 0.35, 3);
+      ctx.fill();
+
+      ctx.restore();
+
+      // 8. Draw Celeb Particles & Confetti
+      particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        
+        if (p.isConfetti) {
+          // Render fluttering confetti rects
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+        } else if (p.isEmoji) {
+          // Render floating crowd celebration emojis
+          ctx.font = `${p.size}px serif`;
+          ctx.textAlign = 'center';
+          ctx.fillText(p.emoji, p.x, p.y);
+        } else {
+          // Standard dirt or trail particles
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size || 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        ctx.restore();
+      });
+
+      ctx.restore(); // Restore screen shake state
+    }
+
+    // Main Run Loops
+    function gameTick() {
+      updatePhysics();
+      render();
+      requestAnimationFrame(gameTick);
+    }
+
+    // Start rendering frame
+    requestAnimationFrame(gameTick);
+  </script>
+</body>
+</html>
