@@ -180,6 +180,15 @@
       </div>
 
       <!-- Main Score Hero -->
+<!-- Player Name -->
+		<div class="w-full bg-slate-800/60 rounded-xl p-3 flex flex-col items-center">
+		  <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">
+		    Player
+		  </span>
+		  <span id="scorecard-player-name" class="text-lg font-black text-white">
+		    NEW USER
+		  </span>
+		</div>
       <div class="w-full bg-gradient-to-br from-emerald-500/10 to-teal-600/10 border border-emerald-500/20 rounded-2xl py-5 flex flex-col items-center">
         <span class="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1">Total Score</span>
         <span id="final-score" class="text-5xl font-black text-white leading-none">42</span>
@@ -901,7 +910,7 @@
 function endInnings() {
       gameState = ST_OUT;
 
-      let statusStr;
+	let statusStr;
       if (gameMode === 'superover') {
         if (score >= totalTarget) {
           statusStr = "🎉 Magnificent Chase! You won the Super Over!";
@@ -917,7 +926,30 @@ function endInnings() {
       document.getElementById('final-score').textContent = score;
       document.getElementById('final-overs').textContent = `${Math.floor(ballsPlayed / 6)}.${ballsPlayed % 6}`;
       document.getElementById('final-streak').textContent = bestStreak;
-      document.getElementById('scorecard-mode-badge').textContent = gameMode === 'superover' ? 'Super Over' : 'Arcade Mode';
+      document.getElementById('final-score').textContent = score;
+document.getElementById('final-overs').textContent = `${Math.floor(ballsPlayed / 6)}.${ballsPlayed % 6}`;
+document.getElementById('final-streak').textContent = bestStreak;
+
+let playerName = 'NEW USER';
+
+try {
+  if (
+    typeof isUserLoggedIn === 'function' &&
+    typeof getCurrentUser === 'function' &&
+    isUserLoggedIn()
+  ) {
+    const user = getCurrentUser();
+    playerName = user?.username || user?.email || 'NEW USER';
+  }
+} catch (e) {}
+
+const playerEl = document.getElementById('scorecard-player-name');
+if (playerEl) {
+  playerEl.textContent = playerName;
+}
+
+document.getElementById('scorecard-mode-badge').textContent =
+  gameMode === 'superover' ? 'Super Over' : 'Arcade Mode';
 
       gameOverModal.classList.remove('hidden');
 
@@ -1577,6 +1609,9 @@ function endInnings() {
 
     // Start rendering frame
     requestAnimationFrame(gameTick);
+</script>
+	<script src="./js/auth.js"></script>
+	<script src="./js/app.js"></script>
   </script>
 </body>
 </html>
